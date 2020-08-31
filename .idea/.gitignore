@@ -2,7 +2,11 @@
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
+<<<<<<< HEAD
 /dataSources/
+=======
+/../../../../:\github\fuckJava\.idea/dataSources/
+>>>>>>> d10b250f9d9066e7b70f7a523d84af18abac0af7
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
