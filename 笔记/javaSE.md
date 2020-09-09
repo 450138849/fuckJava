@@ -295,6 +295,15 @@ public class Test{
 
 > 构造其中可以使用this(参数)其它构造器
 
+**构造器调用规则：**
+
+1. **子类构造会调用父类的构造器**
+2. **未指定子类构造器的时候会默认生成无参构造器**
+3. **子类构造器未显示调用父类构造的时候会调用父类的无参构造**
+4. **如果父类没有无参构造，子类又没有显示调用，则编译报错**
+
+总结：默认调用无参构造，无参构造不存在则报错
+
 **初始化顺序：**
 
 1. 系统初始化(变量初始化等操作)
@@ -304,6 +313,18 @@ public class Test{
 
 ## 10.3继承
 
+**继承的作用**：提出共同代码，减少代码冗余，提高代码复用
+
+**java不支持多继承：**
+
+```java
+// 形如下列的多继承不允许
+class C extends A,B {
+}
+```
+
+
+
 **关键字：**
 
 super--父类
@@ -311,30 +332,366 @@ super--父类
 this--当前对象
 
 ```java
+class 父类 {
+}
+ 
+class 子类 extends 父类 {
+}
+```
+
+
+
+例如
+
+```java
+public class Foo {
+    private int age;
+
+    public Foo() {
+        System.out.println("this is foo！");
+    }
+}
+
+public class Child extends Foo {
+    public Child() {
+        System.out.println("this is child!");
+    }
+}
 
 ```
 
 ## 10.4抽象类
 
+**写法**
+
+```java
+public abstract class Employee{
+    
+}
+
+public abstract class TrafficTool {
+    public int capacity;
+    abstract void move();
+}
+
+public class Airplane  extends TrafficTool{
+    @Override
+    void move() {
+        System.out.println("飞行!");
+    }
+}
+
+public class Car extends TrafficTool {
+    @Override
+    void move() {
+        System.out.println("汽车行驶");
+    }
+}
+```
+**抽象类规则**
+
+- **抽象类不能被实例化**(初学者很容易犯的错)，如果被实例化，就会报错，编译无法通过。只有抽象类的非抽象子类可以创建对象。
+- **抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。**
+-  **抽象类中的抽象方法只是声明，不包含方法体**，就是不给出方法的具体实现也就是方法的具体功能。
+- **构造方法，类方法（用 static 修饰的方法）不能声明为抽象方法。**(构造方法在new的时候调用，抽象类不能创建实例，所以不能有构造方法)
+- **抽象类的子类如果不是抽象类，必须实现全部抽象方法**。 
+
 ## 10.5接口
+
+**接口写法**
+
+```java
+[可见度] interface 接口名称 [extends 其他的接口名] {
+        // 声明变量
+        // 抽象方法
+}
+```
+
+**当类实现接口的时候，类要实现接口中所有的方法。否则，类必须声明为抽象的类。**(抽象类中可以包含抽象方法和非抽象方法)
+
+**案例**
+
+```java
+public interface Animal {
+    void move();
+}
+
+public class Rabbit implements  Animal{
+    @Override
+    public void move() {
+        System.out.println("兔子会跳!");
+    }
+}
+```
+
+**接口特性**
+
+- 接口中每一个方法也是隐式抽象的,接口中的方法会被隐式的指定为 **public abstract**（只能是 public abstract，其他修饰符都会报错）。
+- 接口中可以含有变量，但是接口中的变量会被隐式的指定为 **public static final** 变量（并且只能是 public，用 private 修饰会报编译错误）。
+- 接口中的方法是不能在接口中实现的，只能由实现接口的类来实现接口中的方法。
+- 接口中的静态方法是可以带方法体的，由接口名称调用。
+
+**抽象类和接口的区别**
+
+-  抽象类中的方法可以有方法体，就是能实现方法的具体功能，但是接口中只有默认方法和静态方法能有方法体。
+-  抽象类中的成员变量可以是各种类型的，而接口中的成员变量只能是 **public static final** 类型的。
+-  **抽象类只能单继承，接口可以多实现**
+-  **接口之间可以多继承**
+
+**接口和抽象类的用途区分**
+
+- 抽象类是一个模板，子类继续扩充模板
+- 接口是一个规范，实现同一个接口的类都必须具备同一种规范
+
+> **注**：JDK 1.8 以后，接口里可以有静态方法和方法体了。
+
+**在 JDK1.8，允许我们给接口添加两种非抽象的方法实现：**
+
+1、默认方法，添加 **default** 修饰即可；
+
+2、静态方法，使用 **static** 修饰；示例如下：
+
+```java
+// 调用的时候,静态方法通过方法名调用,默认方法通过实现接口的类的对象调用
+interface Test{
+    //这个是默认方法
+    default String get(String aa){
+        System.out.println("我是jdk1.8默认实现方法...");
+        return "";
+    }   
+    //这个是静态方法    
+    static void staticmethod(){
+        System.out.println("我是静态方法");
+    }
+}
+```
+
+**标记接口**
+
+对实现该接口的类进行标记，标机接口不包含任何方法和属性
 
 ## 10.6多态
 
-## 10.7泛型
+**多态存在的三个必要条件**
 
-## 10.8内部类
+- 继承
+- 重写
+- 父类引用指向子类对象
+
+**会屏蔽子类之间的差异，只能调用父类中定义的公共的内容**
+
+可以指定子类对象为抽象类或接口类型
+
+instanceof可以判断某个对象是否是某个类或接口类型
+
+- 常用场景
+  - 父类类型作为参数
+  - 父类类型作为返回值
+
+## 10.7内部类
+
+定义在类当中的类:注意单例模式有一种用内部类实现的方式，可以达到和双检锁一样的效果。
+
+分类：
+
+- 成员内部类
+  1. 实例成员内部类
+  2. 静态成员内部类
+- 局部内部类
+- 匿名内部类
+
+**实例成员内部类：**
+
+- 写法
+
+```java
+public class Outer {
+    public void show() {
+        System.out.println("show outer!");
+    }
+
+    public class Inner {
+        private int age;
+
+        public void show() {
+            System.out.println("show inner!");
+        }
+    }
+}
+```
+
+- 对象创建
+
+```java
+Outer.Inner inner = new Outer().new Inner();
+```
+
+- 属性访问
+
+> 内部类访问外部类成员可以直接访问，外部类访问内部类需要先创建对象。
+>
+> 内部类访问外部类同名属性要使用外部类对象访问。
+
+**静态成员内部类：**
+
+- 写法
+
+```java
+public class TestStaticOuter {
+    public static class Inner {
+        public void show() {
+            System.out.println("show!");
+        }
+    }
+}
+```
+
+- 对象创建
+
+```java
+ TestStaticOuter.Inner inner = new TestStaticOuter.Inner();
+```
+
+- 属性访问
+
+> 静态成员内部类只能访问静态内容
+
+**局部内部类：**
+
+在代码块或方法中的内部类
+
+- 写法
+
+```java
+public class LocalOuter {
+    // 内部类定义在方法中，只能在方法内部调用
+    public void showInner() {
+        int a = 10;
+        class Inner {
+            public void show() {
+                System.out.println("show inner!" + a);
+            }
+        }
+        Inner inner = new Inner();
+        inner.show();
+    }
+}
+```
+
+- 对象创建
+
+> 只能在{}内创建，在局部范围内引用
+
+**匿名内部类：**
+
+只在需要的时候才创建类，使代码变得简洁，解决多继承方法同名问题等，视为一个非抽象的实现类，所以不能有抽象方法，同时不能有静态内容和构造方法(只在类创建的时候调用一次，所以不需要构造方法)
+
+- 写法
+
+```java
+// 匿名内部类实现一个接口或继承一个类
+AnonymousClass anonymous = new AnonymousClass() {
+            @Override
+            public void show() {
+                System.out.println("show anonymousClass!");
+            }
+        };
+        anonymous.show();
+```
+
+- 对象创建
+
+在创建类的时候创建内部类
+
+## 10.8UML统一建模语言
+
+- 继承
+- 实现
+- 关联
+- 依赖
+- 组合
+- 聚合
+
+![image-20200908133905097](C:\Users\lvbowen450138849\AppData\Roaming\Typora\typora-user-images\image-20200908133905097.png)
 
 ## 单例模式
+
+**构成**
+
+- 一个成员变量
+- 一个构造方法
+- 一个getInstance()方法
 
 ### 饱汉式
 
 **线程安全**
 
+```java
+// 添加了synchronized关键字后对性能影响很大，但是getInstance()方法很少调用，所以对应用的效率影响不大
+public class Singleton {  
+    private static Singleton instance;  
+    private Singleton (){}  
+    public static synchronized Singleton getInstance() {  
+    if (instance == null) {  
+        instance = new Singleton();  
+    }  
+    return instance;  
+    }  
+}
+```
+
 **线程不安全**
+
+```java
+public class Singleton2 {
+    private static Singleton2 singleton;
+
+    private Singleton2() {
+
+    }
+
+    public static Singleton2 getInstance() {
+        if (singleton == null) {
+            singleton = new Singleton2();
+        }
+        return singleton;
+    }
+}
+```
 
 ### 饿汉式
 
+```java
+public class Singleton {
+    private static Singleton singleton = new Singleton();
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        return singleton;
+    }
+}
+```
+
 ### 双检锁 
+
+```java
+public class Singleton {  
+    private volatile static Singleton singleton;  
+    private Singleton (){}  
+    public static Singleton getSingleton() {  
+    if (singleton == null) {  
+        synchronized (Singleton.class) {  
+        if (singleton == null) {  // 确保对象未创建且未在创建中
+            singleton = new Singleton();  
+        }  
+        }  
+    }  
+    return singleton;  
+    }  
+}
+```
 
 ## javabean标准
 
@@ -343,15 +700,75 @@ this--当前对象
 3. 无参构造
 4. get/set方法
 
-# 11.集合
+## UML图例
 
-# 12.网络编程
+https://blog.csdn.net/Lemon_husky/article/details/80181856
 
-# 13.多线程
+# 11.泛型
 
-# 14.异常处理
+# 12.集合
 
-# 15.反射
- ```
+# 13.网络编程
 
- ```
+# 14.多线程
+
+# 15.异常处理
+
+# 16.反射
+
+# 17.java8特性
+
+## 17.1函数式接口
+
+> 函数式接口(Functional Interface)就是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。
+>
+> 函数式接口可以被隐式转换为 lambda 表达式。
+
+```java
+@FunctionalInterface
+interface GreetingService 
+{
+    void sayMessage(String message);
+}
+
+// 这种实现方式相当于用匿名内部类重写接口中的唯一一个抽象方法
+GreetingService greetService1 = message -> System.out.println("Hello " + message);
+```
+
+## 17.2Lambda表达式
+
+- 写法
+
+```java
+()->{}
+```
+
+- lambda表达式和函数接口的差别
+  - lambda表达式只能调用函数接口，匿名内部类可以实现接口，类
+  - lambda表达式不能调用默认方法
+
+## 17.3方法引用
+
+方法引用的四种方法：
+
+- 构造器引用
+
+```java
+Class::new
+```
+
+- 静态方法
+```java
+Class::static_method
+```
+
+- 特定对象
+
+```java
+instance::method
+```
+- 任意对象
+
+```java
+Class::method
+```
