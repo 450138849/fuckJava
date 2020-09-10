@@ -1,4 +1,4 @@
-# 1.运行过程
+# 》1.运行过程
 
 - 编译(.java文件编译成.class字节码文件)
 - 运行(类加载->字节码校验->解释->解释成不同平台可执行的代码)
@@ -749,7 +749,93 @@ https://blog.csdn.net/Lemon_husky/article/details/80181856
 
 > 方法同StringBuffer但是线程不安全
 
-## 11.2
+## 11.2包装类
+
+除了char->Character ,int->Integer,其他的都是首字母大写
+
+**装箱和拆箱**
+
+装箱：valueOf()
+
+拆箱：intValue()
+
+指定类型直接赋值的时候会自动调用上述方法进行装箱和拆箱操作
+
+**常量池**
+
+除了flout和Double类型之外的类型都实现了常量池技术
+
+-128~127会缓存，超出之后会重新创建对象
+
+```java
+public static void main(String[] args) {
+        Integer a1 = 1;
+        Integer a2 = 1;
+        System.out.println(a1 == a2);// true，因为1存在了常量池里边
+        Integer a3 = 128;
+        Integer a4 = 128;
+        System.out.println(a3 == a4);// false，因为128超出-128~127，会调用new Integer(128)重新创建对象，两个对象不相同
+    }
+```
+
+**字符串和包装类的类型转换**
+
+```java
+// 字符串转化成Integer类型,三种写法都可以，源码实现其实都是调用了parseInt方法
+int i = new Integer("123");
+int i2 = Integer.valueOf("123");
+int i3 = Integer.parseInt("123");
+// 包装类转String
+String s1 = 123 + "";// 常用
+String s2 = new Integer(123).toString();
+String s3 = String.valueOf(123);
+```
+
+**进制转换**
+
+```java
+        System.out.println(Integer.toBinaryString(2));// 10 -> 2
+        System.out.println(Integer.toOctalString(8));// 10 -> 8
+        System.out.println(Integer.toHexString(16));// 10 -> 16
+        System.out.println(Integer.valueOf("10",16));// 16 -> 10 parseInt只能讲不同进制转换成十进制
+        System.out.println(Integer.valueOf("10",8));// 8->10
+        System.out.println(Integer.valueOf("10",2));// 2 -> 10
+```
+
+## 11.3Character类
+
+char的包装类，表示一个字符
+
+- isLetter()是否字符
+- isDigit()是否数字
+- isWhitespace()是否空白字符(包括空格，tab，换行符'\n','\t')
+- isUpperCase()
+- isLowerCase()
+- toUpperCase()
+- toLowerCase()
+- toString()
+
+# 正则表达式
+
+\前要加上转义字符\
+
+|  \D   |      非数字      |
+| :---: | :--------------: |
+|  \d   |       数字       |
+|  \W   |    非单词字符    |
+|  \w   |     单词字符     |
+|   .   | 换行符之外的字符 |
+|  {n}  |       n次        |
+| {n,m} |      n-m次       |
+|   *   |       >=0        |
+|   +   |        >0        |
+|   ?   |       0或1       |
+
+**java验证正则表达式三步骤：**
+
+1. 定义正则表达式Pattern
+2. 输入要匹配的字符串Matcher
+3. 校验matches()
 
 # 泛型
 
