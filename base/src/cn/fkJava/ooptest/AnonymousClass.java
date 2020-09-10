@@ -1,2 +1,5 @@
-package cn.fkJava.ooptest;public class AnonymousClass {
+package cn.fkJava.ooptest;
+
+public interface AnonymousClass {
+    void show();
 }

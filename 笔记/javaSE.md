@@ -704,21 +704,68 @@ public class Singleton {
 
 https://blog.csdn.net/Lemon_husky/article/details/80181856
 
-# 11.泛型
+# 11API
 
-# 12.集合
+## 11.1字符串
 
-# 13.网络编程
+### **String**
 
-# 14.多线程
+> 在创建的时候，如果静态方法区存在该字符串，则直接引用，如果不存在，则创建，如果是new String(“”)方式创建，则在堆中创建引用对象指向静态方法区中的字符串常量
 
-# 15.异常处理
+**常用方法**
 
-# 16.反射
+- charAt(index)
+- contentEquals()
+- concat()
+- startsWith()
+- endsWith()
+- toLowerCase()
+- toUpperCase()
+- substring()
+- split()
 
-# 17.java8特性
+### **StringBuffer**
 
-## 17.1函数式接口
+线程安全
+
+**常用方法**
+
+- append()
+- reverse()
+- insert()
+- replace(start,end,string)
+- delete(start,end)
+- deleteCharAt(index)
+- capacity()
+- charAt()
+- setCharAt(index,char)--替换指定位置的字符
+- toString()
+
+### **StringBuilder**
+
+线程不安全，效率更高
+
+**常用方法**
+
+> 方法同StringBuffer但是线程不安全
+
+## 11.2
+
+# 泛型
+
+# 集合
+
+# 网络编程
+
+# 多线程
+
+# 异常处理
+
+# 反射
+
+# java8特性
+
+## 函数式接口
 
 > 函数式接口(Functional Interface)就是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。
 >
@@ -735,7 +782,7 @@ interface GreetingService
 GreetingService greetService1 = message -> System.out.println("Hello " + message);
 ```
 
-## 17.2Lambda表达式
+## Lambda表达式
 
 - 写法
 
@@ -747,7 +794,7 @@ GreetingService greetService1 = message -> System.out.println("Hello " + message
   - lambda表达式只能调用函数接口，匿名内部类可以实现接口，类
   - lambda表达式不能调用默认方法
 
-## 17.3方法引用
+## 方法引用
 
 方法引用的四种方法：
 
@@ -772,3 +819,4 @@ instance::method
 ```java
 Class::method
 ```
+
