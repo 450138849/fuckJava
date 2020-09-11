@@ -1,4 +1,4 @@
-package cn.fkJava.ooptest;
+package cn.fkJava.test;
 
 public class Rabbit implements  Animal{
     public void move() {

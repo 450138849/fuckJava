@@ -836,6 +836,8 @@ System.out.println(date1);// Fri Sep 11 11:45:35 CST 2020
 2. time时间
 3. timeStamp时间戳
 
+以上三种都是要传入毫秒数(unix毫秒数)来进行构造的
+
 ```java
 java.sql.Date date2 = new java.sql.Date(1599795935890L);// 是用sql.date可以直接获得年月日
 System.out.println(date2);// 2020-09-11   会调用date2的toString方法
@@ -886,7 +888,45 @@ System.out.println(df3.format(d));// 2020年9月11日
 System.out.println(df4.format(d));// 2020年9月11日星期五
 ```
 
+**时间格式化**
 
+```java
+Date date = new Date();
+DateFormat df = DateFormat.getTimeInstance();
+DateFormat df1 = DateFormat.getDateTimeInstance();
+DateFormat df2 = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
+System.out.println(df.format(date));// 下午12:51:44
+System.out.println(df1.format(date));// 2020年9月11日 下午12:52:30
+System.out.println(df2.format(date));// 2020年9月11日 下午04时41分35秒
+System.out.println(sdf.format(date));// 2020-09-11 04:44:45
+```
+
+## 11.6日历类
+
+```java
+Calendar c = Calendar.getInstance();
+System.out.println(c.getTime());// Fri Sep 11 17:19:31 CST 2020
+// 获取不同字段
+System.out.println(c.get(Calendar.YEAR));// 2020
+System.out.println(c.get(Calendar.MONTH));// 8 月份从0开始
+System.out.println(c.get(Calendar.DAY_OF_MONTH));// 11
+System.out.println(c.get(Calendar.DAY_OF_WEEK));// 6 星期从星期天开始
+// 对日历字段进行操作
+c.add(Calendar.YEAR, 1);
+System.out.println(c.getTime());//Sat Sep 11 17:19:31 CST 2021 获取的是一个date格式的字符串
+System.out.println(c.getTime().getTime());//1631351971602 相当于date对象获取时间戳
+// 获取一小时以后的时间转换成时间戳方式方便存到数据库
+Calendar calendar2 = Calendar.getInstance();
+calendar2.add(Calendar.HOUR, 1);
+System.out.println(calendar2.getTime());// Fri Sep 11 18:29:34 CST 2020
+SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+System.out.println(sdf.format(calendar2.getTime()));// 2020-29-11 06:29:34
+String s = sdf.format(calendar2.getTime());
+Date date = sdf.parse(s);
+System.out.println(new java.sql.Date(date.getTime()));// 2020-01-11
+```
 
 # 正则表达式
 

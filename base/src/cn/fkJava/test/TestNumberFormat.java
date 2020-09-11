@@ -1,4 +1,4 @@
-package cn.fkJava.ooptest;
+package cn.fkJava.test;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

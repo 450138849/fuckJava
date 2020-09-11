@@ -1,4 +1,4 @@
-package cn.fkJava.ooptest;
+package cn.fkJava.test.date;
 
 import java.sql.Time;
 import java.sql.Timestamp;

@@ -1,4 +1,4 @@
-package cn.fkJava.ooptest;
+package cn.fkJava.test;
 
 public class Singleton1 {
     private static Singleton1 singleton = new Singleton1();
