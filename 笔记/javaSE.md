@@ -1,4 +1,4 @@
-# 》1.运行过程
+# 1.运行过程
 
 - 编译(.java文件编译成.class字节码文件)
 - 运行(类加载->字节码校验->解释->解释成不同平台可执行的代码)
@@ -814,6 +814,79 @@ char的包装类，表示一个字符
 - toUpperCase()
 - toLowerCase()
 - toString()
+
+## 11.4日期操作类
+
+**初始化日期**
+
+1. new Date()//获取当前时间
+2. new Date(long xxxL)//根据指定时间获取Date对象
+
+```java
+Date date = new Date();
+System.out.println(date);// Fri Sep 11 11:45:35 CST 2020
+System.out.println(date.getTime()); // 1599795935890
+Date date1 = new Date(1599795935890L);// 可以输入new类型的数值来初始化
+System.out.println(date1);// Fri Sep 11 11:45:35 CST 2020
+```
+
+**日期的表现形式**
+
+1. date日期
+2. time时间
+3. timeStamp时间戳
+
+```java
+java.sql.Date date2 = new java.sql.Date(1599795935890L);// 是用sql.date可以直接获得年月日
+System.out.println(date2);// 2020-09-11   会调用date2的toString方法
+System.out.println(java.sql.Date.valueOf("2020-09-11").getTime());//1599753600000  string->date
+Time time = new Time(1599795935890L);
+System.out.println(time);// 11:45:35
+Timestamp ts = new Timestamp(1599795935890L);
+System.out.println(ts);// 2020-09-11 11:45:35.89
+System.out.println(Timestamp.valueOf("2020-09-11 11:45:35.89"));// 字符串转时间戳
+```
+
+**格式转换**
+
+- valueOf将字符串转化成对应格式
+- toString将当前格式转化为字符串
+
+## 11.5格式化
+
+**数字格式化**
+
+1. NumberFormat
+2. DecimalFormat
+
+```java
+        NumberFormat format = NumberFormat.getInstance();
+        NumberFormat format2 = NumberFormat.getCurrencyInstance();
+        DecimalFormat format3 = new DecimalFormat("000.000");
+
+        System.out.println(format.format(123.456));// 123.456
+        System.out.println(format2.format(123.456));// ¥123.46 以默认环境的货币方式输出
+        System.out.println(format3.format(12.34));// 按照指定格式输出012.340
+```
+
+**日期格式化**
+
+```java
+Date d = new Date();
+DateFormat df = DateFormat.getDateInstance();
+DateFormat df1 = DateFormat.getDateInstance(DateFormat.SHORT);
+DateFormat df2 = DateFormat.getDateInstance(DateFormat.MEDIUM);
+DateFormat df3 = DateFormat.getDateInstance(DateFormat.LONG);
+DateFormat df4 = DateFormat.getDateInstance(DateFormat.FULL);
+
+System.out.println(df.format(d));// 2020年9月11日
+System.out.println(df1.format(d));// 2020/9/11
+System.out.println(df2.format(d));// 2020年9月11日
+System.out.println(df3.format(d));// 2020年9月11日
+System.out.println(df4.format(d));// 2020年9月11日星期五
+```
+
+
 
 # 正则表达式
 
