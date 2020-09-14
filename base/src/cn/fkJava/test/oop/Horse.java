@@ -1,4 +1,4 @@
-package cn.fkJava.test;
+package cn.fkJava.test.oop;
 
 public class Horse implements Traffics,Animal{
     public void move() {

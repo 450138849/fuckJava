@@ -1,4 +1,4 @@
-package cn.fkJava.test;
+package cn.fkJava.test.oop;
 
 public abstract class TrafficTool {
     public int capacity;

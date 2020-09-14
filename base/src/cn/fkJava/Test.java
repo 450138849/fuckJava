@@ -1,7 +1,7 @@
 package cn.fkJava;
 
 
-import cn.fkJava.test.AnonymousClass;
+import cn.fkJava.test.oop.AnonymousClass;
 
 public class Test {
     public static void main(String[] args) {

@@ -1,4 +1,4 @@
-package cn.fkJava.test;
+package cn.fkJava.test.oop;
 
 public class Car extends TrafficTool {
     @Override

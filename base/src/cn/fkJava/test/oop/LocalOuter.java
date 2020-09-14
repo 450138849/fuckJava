@@ -1,4 +1,4 @@
-package cn.fkJava.test;
+package cn.fkJava.test.oop;
 
 public class LocalOuter {
     // 内部类定义在方法中，只能在方法内部调用
