@@ -252,7 +252,7 @@ public class Test{
 
 ## 10.2构造器
 
-**构造器格式**
+**构造器格式**(注意不能有返回参数)
 
 ```java
 // 格式
@@ -932,7 +932,7 @@ Date date = sdf.parse(s);
 System.out.println(new java.sql.Date(date.getTime()));// 2020-01-11
 ```
 
-# 正则表达式
+# 12正则表达式
 
 \前要加上转义字符\
 
@@ -954,11 +954,244 @@ System.out.println(new java.sql.Date(date.getTime()));// 2020-01-11
 2. 输入要匹配的字符串Matcher()
 3. 校验matches()
 
-# 泛型
+# 13泛型(generics)
 
+> 泛型的本质是参数化类型，可以减少代码冗余，可以在编译期进行类型判断
 
+## 13.1泛型方法
+
+**定义规则**
+
+- 泛型方法必须在返回值前边声明类型参数
+- 可以声明多个类型参数(逗号分隔)
+- 返回值可以使类型参数
+- 类型参数只能是引用类型，不能是基本类型
+
+```java
+// 定义泛型方法，输入参数会自动判定泛型类型
+public static <T> void printStr(T str){
+    System.out.println(str);
+}
+
+public static void main(String[] args) {
+    Integer a = 1;
+    String str = "abc";
+    Double b = 0.1;
+
+    printStr(a);
+    printStr(b);
+    printStr(str);
+}
+```
+
+## 13.2泛型类
+
+```java
+public class TestGenericClass<T> {
+    private T t;
+
+    public TestGenericClass(T t) {
+        this.t = t;
+    }
+
+    private void get() {
+        System.out.println(t);
+    }
+
+    public static void main(String[] args) {
+        TestGenericClass<Integer> t1 = new TestGenericClass(1);
+        TestGenericClass<String> t2 =  new TestGenericClass("zhangsan");
+
+        t1.get();
+        t2.get();
+    }
+}
+```
+
+## 13.3泛型接口
+
+```java
+public interface TestGenericsInterface<T> {
+
+}
+
+// 实现的时候继续使用泛型(在实例化的时候指定泛型类型)
+class GenericsImpl1<T> implements TestGenericsInterface<T>{
+
+}
+
+// 实现的时候已经制定了泛型类型
+class GenericsImpl2 implements TestGenericsInterface<String>{
+    
+}
+```
+
+## 13.4泛型通配符
+
+- 无界?
+- 上界extends
+- 下界super
+
+**？和 T的区别**：
+
+1. ?可以设置上界和下界，T只能设置上界
+2. ?只能有一个上界，T能有多个上界
+3. 多个上界需要用&分隔
+
+**用例**
+
+```java
+public class TestGenericsMethodBound<T> {
+
+    // 无界
+    public static void print(TestGenericsMethodBound<?> t) {
+        System.out.println(t);
+    }
+
+    // 上界
+    public static void printUpperNum(TestGenericsMethodBound<? extends Number> t) {
+        System.out.println(t);
+    }
+
+    //下界
+    public static void printLowerNum(TestGenericsMethodBound<? super Integer> t) {
+        System.out.println(t);
+    }
+
+    public static void main(String[] args) {
+        TestGenericsMethodBound<Integer> test1 = new TestGenericsMethodBound<>();
+        TestGenericsMethodBound<Double> test2 = new TestGenericsMethodBound<>();
+        TestGenericsMethodBound<String> test3 = new TestGenericsMethodBound<>();
+        TestGenericsMethodBound<Number> test4 = new TestGenericsMethodBound<>();
+
+        print(test1);
+        print(test2);
+        print(test3);
+        printUpperNum(test1);
+        printUpperNum(test2);
+        printUpperNum(test3);// String类型不是Number的子类故编译报错
+        printLowerNum(test1);
+        printLowerNum(test2);// Double类型不是Integer或父类，故编译报错
+        printLowerNum(test3);// String类型不是Integer或父类，故编译报错
+        printLowerNum(test4);
+    }
+}
+```
+
+## 13.5泛型擦除
+
+> 泛型在编译的时候会擦除
+
+**擦除原则：**
+
+- 无上下界替换为Object
+- 有上下界替换为最左边的类型
+
+## 13.6比较器
+
+Arrays.sort()进行排序的时候，被排序的对象必须实现了comparable接口，可以传入外部比较器进行比较
+
+**实现comparable接口的步骤：**
+
+- 实现comparable<T>
+- 重写compareTo方法
+
+```java
+package cn.fkJava.test.generics.comparator;
+
+import java.util.Arrays;
+import java.util.Comparator;
+
+// 实现comparable<T>接口
+class Test implements Comparable<Test> {
+    public int age;
+
+    public Test() {
+    }
+
+    public Test(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public int compareTo(Test o) {
+        return this.age - o.age;
+    }
+}
+
+public class TestComparator {
+    public static void main(String[] args) {
+        Test t1 = new Test(33);
+        Test t2 = new Test(22);
+        Test[] arr = {t1, t2};
+
+        Arrays.sort(arr);// 通过实现comparable接口进行排序
+        // 通过传入comparator进行排序
+        Arrays.sort(arr, new Comparator<Test>() {
+            @Override
+            public int compare(Test o1, Test o2) {
+                return o1.age - o2.age;
+            }
+        });
+        // 通过lambda表达式实现
+        Arrays.sort(arr, (((o1, o2) -> {
+            return o1.age - o2.age;
+        })));
+    }
+}
+```
+
+# 14枚举
+
+- 数据量不大
+- 数据必须确定
+
+**声明**
+
+- enum关键字声明枚举类
+- 枚举类可以声明变量，方法，构造方法
+
+```
+public enum TestEnum {
+    TEST_ENUM;
+}
+```
+
+**方法**
+
+- valueOf--可以将值转成枚举类型
+- values--可以获取所有的值
+
+# 垃圾回收
+
+主动进行垃圾回收
+
+- System.gc()
 
 # 集合
+
+当不知道具体的所需容量的情况下，使用容器。
+
+## 1.集合框架
+
+![image-20200916220725272](.\javaSE.assets\image-20200916220725272.png)
+
+## 2.集合特点
+
+- Collection--可重复，无序
+- List--有序，可重复
+  - ArrayList--便于查询，不便于增删
+  - LinkedList--便于增删，不便于查询
+- Set--无序，不可重复
+  - HashSet--
+  - TreeSet--
+- Map
+  - HashMap--
+  - TreeMap--
+
+## JUC(java.util.Concurrent)并发包
+
+
 
 # 网络编程
 
@@ -1034,7 +1267,7 @@ System.out.println(new java.sql.Date(date.getTime()));// 2020-01-11
 
 ## 函数式接口
 
-> 函数式接口(Functional Interface)就是一个有且仅有一个抽象方法，但是可以有多个非抽象方法的接口。
+> 函数式接口(Functional Interface)就是一个有且仅有一个抽象方法(Object中的方法不计入其中)，但是可以有多个非抽象方法的接口。
 >
 > 函数式接口可以被隐式转换为 lambda 表达式。
 
@@ -1089,3 +1322,16 @@ instance::method
 Class::method
 ```
 
+## stream
+
+集合和Array可以转化为stream方便链式调用
+
+- **stream()** − 为集合创建串行流。
+- **parallelStream()** − 为集合创建并行流。
+
+通过流可以调用一系列方便的API例如
+
+- foreach
+- count
+
+参考`public interface Stream<T>`
