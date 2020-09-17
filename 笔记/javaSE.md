@@ -616,7 +616,7 @@ AnonymousClass anonymous = new AnonymousClass() {
 - 组合
 - 聚合
 
-![image-20200908133905097](E:\github\fuckJava\笔记\javaSE.assets\image-20200908133905097.png)
+![image-20200908133905097](.\javaSE.assets\image-20200908133905097.png)
 
 ## 单例模式
 
@@ -1209,7 +1209,7 @@ public enum TestEnum {
 
 ## 2.异常类
 
-![image-20200913103909138](E:\github\fuckJava\笔记\javaSE.assets\image-20200913103909138.png)
+![image-20200913103909138](.\javaSE.assets\image-20200913103909138.png)
 
 **运行异常(RuntimeException)**
 
