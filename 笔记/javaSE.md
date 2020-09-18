@@ -1168,9 +1168,18 @@ public enum TestEnum {
 
 - System.gc()
 
+# Object
+
+- 常用方法
+- 如果要根据指定的规则对对象进行比较，则要使用equals()方法
+- 根据hashcode规则，equals比较相同的对象必须有相同的hashCode，equals()比较结果不同的对象也可以有相同的hashCode（hash冲突）
+
 # 集合
 
 当不知道具体的所需容量的情况下，使用容器。
+
+- 数组必须要调用Arrays.toString()才能打印内容，否则打印的是地址
+- 集合可以直接打印就能说出内容，不需要输出地址
 
 ## 1.集合框架
 
@@ -1183,15 +1192,40 @@ public enum TestEnum {
   - ArrayList--便于查询，不便于增删
   - LinkedList--便于增删，不便于查询
 - Set--无序，不可重复
-  - HashSet--
-  - TreeSet--
-- Map
-  - HashMap--
-  - TreeMap--
+  - HashSet--增删和查询效率均可，无序
+    - LinkedHashSet--按照插入顺序排序，保存hashset查询性能
+  - TreeSet--升序排序，查询速度比list快，不如hashSet
+- Map--存键值对
+  - HashMap--一种快速算法生成的顺序，视为无序
+    - LinkedHashMap--按照key插入顺序，保留HashMap查询性能
+  - TreeMap--按照比较后升序保存key
+- Queue--只能从一端进一端出
+
+**优缺点：**
+
+ArrayList	--	遍历和查询比较快(扩容1.5倍)
+
+LinkedList	--	添加、删除元素比较快
+
+Vector	--	线程安全的，效率低(扩容为两倍)
+
+**遍历：**
+
+- for
+- foreach
+- 迭代器
 
 ## JUC(java.util.Concurrent)并发包
 
+## 迭代器
 
+## 工具类
+
+- collections
+- arrays
+  - 参数可以使用数组或可变参数
+  - 使用arrays.asList()返回的是数组，不可以改变容量
+  - 类型会按照给出的元素给出最精确的类型，显示指定为Arrays.<T>asList()
 
 # 网络编程
 
