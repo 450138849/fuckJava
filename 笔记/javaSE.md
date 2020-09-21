@@ -1146,6 +1146,12 @@ public class TestComparator {
 - 数据量不大
 - 数据必须确定
 
+**原理**
+
+创建enum时，会生成一个继承自enum的类
+
+枚举类中的每一项都会继承enum类,enum类当中重写了toString方法，返回枚举名称，所以打印不是object的类名@hash值，而是返回的枚举名称
+
 **声明**
 
 - enum关键字声明枚举类
@@ -1161,6 +1167,36 @@ public enum TestEnum {
 
 - valueOf--可以将值转成枚举类型
 - values--可以获取所有的值
+- comprareTo--enum类实现了comparable<T>接口
+- getDeclaringClass()--获取枚举类名称
+- name()--返回枚举类的名称
+- ordinal()--返回枚举类的序数
+- describeConstable()
+- toString
+- clone
+- equals
+- hashcode
+
+**实现接口**
+
+- 在枚举类当中实现抽象方法
+- 如果每个枚举对象有差异，在每个枚举对象后分别实现抽象方法
+
+```java
+// 示例
+public enum TestEnum {
+    ZHANGSAN, LISI, WANGWU, ZHAOLIU;
+
+    public static void main(String[] args) {
+        System.out.println(TestEnum.ZHANGSAN);// ZHANGSAN
+//        Arrays.asList(TestEnum.values()).stream().forEach(System.out::println);
+        System.out.println(TestEnum.ZHANGSAN.getDeclaringClass());// class cn.fkJava.test.testenum.TestEnum
+        System.out.println(TestEnum.ZHANGSAN.name());// ZHANGSAN
+        System.out.println(TestEnum.LISI.ordinal());// 1
+        System.out.println(TestEnum.ZHANGSAN.describeConstable());// Optional[EnumDesc[TestEnum.ZHANGSAN]]如果构造方法有第二个参数，则第二个参数为描述
+    }
+}
+```
 
 # 垃圾回收
 
@@ -1173,10 +1209,12 @@ public enum TestEnum {
 - 常用方法
 - 如果要根据指定的规则对对象进行比较，则要使用equals()方法
 - 根据hashcode规则，equals比较相同的对象必须有相同的hashCode，equals()比较结果不同的对象也可以有相同的hashCode（hash冲突）
+  - 在hash表当中存储的时候，是根据hashcode先进行寻址，hashcode相同的采用链式存储，然后才调用equals比较hashCode相同的对象
+- clone方法默认是浅拷贝，如果想要深拷贝，需要重写clone方法，在里边重新创建对象并赋值即可
 
 # 集合
 
-当不知道具体的所需容量的情况下，使用容器。
+集合是为了解决对象数量不确定的问题 
 
 - 数组必须要调用Arrays.toString()才能打印内容，否则打印的是地址
 - 集合可以直接打印就能说出内容，不需要输出地址
@@ -1194,12 +1232,38 @@ public enum TestEnum {
 - Set--无序，不可重复
   - HashSet--增删和查询效率均可，无序
     - LinkedHashSet--按照插入顺序排序，保存hashset查询性能
-  - TreeSet--升序排序，查询速度比list快，不如hashSet
+  - TreeSet--升序排序，查询速度比list快，不如hashSet(底层是二叉树)【存储的对象必须实现comparable接口，基本类型可以直接存取】
 - Map--存键值对
   - HashMap--一种快速算法生成的顺序，视为无序
     - LinkedHashMap--按照key插入顺序，保留HashMap查询性能
   - TreeMap--按照比较后升序保存key
+  - hashTable--线程安全，性能低
 - Queue--只能从一端进一端出
+  - priorityQueue--优先级队列，通过传入比较器可以实现排序，否则使用自然排序【遍历的时候是不能保证顺序的，只有用队列操作poll才能保证顺序】
+  - Deque--双端队列
+  - LinkedList--实现了堆栈和队列的所有操作
+
+**队列操作**
+
+- add
+- remove
+- get
+- offer
+- poll
+- peek
+
+**栈操作(单侧操作)**
+
+- push
+- pop
+
+**map操作**
+
+- entrySet
+- keySet
+- values
+- containsKey
+- containsValue
 
 **优缺点：**
 
@@ -1212,12 +1276,71 @@ Vector	--	线程安全的，效率低(扩容为两倍)
 **遍历：**
 
 - for
-- foreach
+- foreach[两种形式，for(String a:arr)或者list.foreach()]
 - 迭代器
 
-## JUC(java.util.Concurrent)并发包
-
 ## 迭代器
+
+- 数组可以进行foreach操作，但是数组不是iterable类型
+
+foreach方法使用iterable接口移动，故返回iterable接口并重写其中的iterator可以实现foreach的行为，foreach的对象只要是Iterable接口类型或子类即可
+
+**构造反向迭代器**
+
+```java
+package cn.fkJava.test.collection;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+
+class SuperArrayList<T> extends ArrayList<T> {
+
+    SuperArrayList() {
+        super();
+    }
+
+    SuperArrayList(Collection<T> c) {
+        super(c);
+    }
+
+    public Iterable<T> reverse() {
+        return new Iterable<T>() {
+            @Override
+            public Iterator<T> iterator() {
+                return new Iterator<T>() {
+                    int cur = size() - 1;
+
+                    @Override
+                    public boolean hasNext() {
+                        return cur > -1;
+                    }
+
+                    @Override
+                    public T next() {
+                        return get(cur--);
+                    }
+                };
+            }
+        };
+    }
+}
+
+public class TestIterator {
+    public static void main(String[] args) {
+        SuperArrayList<String> arr = new SuperArrayList(Arrays.asList("a", "b", "c"));
+
+        for(String s:arr){
+            System.out.println(s);
+        }
+
+        for(String s:arr.reverse()){
+            System.out.println(s);
+        }
+    }
+}
+```
 
 ## 工具类
 
@@ -1227,9 +1350,137 @@ Vector	--	线程安全的，效率低(扩容为两倍)
   - 使用arrays.asList()返回的是数组，不可以改变容量
   - 类型会按照给出的元素给出最精确的类型，显示指定为Arrays.<T>asList()
 
+**collections常用方法**
+
+1. sort(collection)
+2. sort(collection,comparator)
+3. reverse
+4. max
+5. min
+6. fill
+7. binarySearch(collection,element)
+
+## stream
+
+通过collection.stream()可以获取对应的Stream
+
+**stream常用方法**
+
+- max
+- min
+- sum
+- avarage
+- count
+- allMatch
+- anyMatch
+- filter
+
+**筛选条件用法**
+
+```java
+List<Dog> dogs = new ArrayList<>();
+
+dogs.stream().allMatch(new Predicate<Dog>() {
+    @Override
+    public boolean test(Dog dog) {
+        return false;
+    }
+})
+```
+
+# IO
+
 # 网络编程
 
-# 多线程
+# 多线程和高并发
+
+# 注解
+
+**注解的重要性:**
+
+框架=注解+反射+设计模式
+
+## 1.文档注解
+
+```java
+// 共有7种文档注释
+/**
+ * @author lvbowen450138849
+ * @version
+ * @see
+ * @since
+ */
+public class TestAnnotation {
+    /**
+     * @param
+     * @return
+     * @exception
+     */
+    public String test(String test) {
+        return "";
+    }
+}
+```
+
+## 2.基本注解
+
+```java
+public class TestAnnotation2 {
+    @Override
+    @Deprecated
+    @SuppressWarnings()
+}
+```
+
+## 3.自定义注解
+
+**如果没有值的注解被称为标记注解**
+
+```java
+package cn.fkJava.test.testAnnotation;
+
+public @interface TestAnnotation3 {
+}
+```
+
+```java
+package cn.fkJava.test.testAnnotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestCustomAnnotation {
+    String value() default "a";// 如果这里没有给出defaultValue那么注解后边一定要带上对应的值，否则编译报错
+
+    String nonDefaultValue();
+}
+
+class Test {
+    // 这里由于没有带上nonDefaultValue的值所以报错
+    @TestCustomAnnotation()
+    void Test() {
+
+    }
+
+    // value有默认值，所以不填value的值也不报错
+    @TestCustomAnnotation(nonDefaultValue = "test")
+    void Test2() {
+
+    }
+    
+    // 标记注解不用赋值，括号可带可不带
+    @TestAnnotation3
+    void Test3() {
+
+    }
+}
+```
+
+## 注解处理器
 
 # 异常处理
 
