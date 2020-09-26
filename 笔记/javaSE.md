@@ -1390,6 +1390,505 @@ dogs.stream().allMatch(new Predicate<Dog>() {
 
 # IO
 
+## 1.文件对象操作
+
+### 1.1构造方法
+
+```java
+File file1 = new File("test1.txt");
+File file2 = new File("parent","child");
+File file3 = new File(file2,"child2");
+```
+
+### 1.2常用方法
+
+**基础方法**
+
+```java
+System.out.println(file1.getAbsoluteFile());// E:\github\fuckJava\test1.txt
+System.out.println(file1.getPath());// test1.txt
+System.out.println(file1.getParent());//null
+System.out.println(file1.getName());//test1.txt
+System.out.println(file1.length());//3
+System.out.println(new Date(file1.lastModified()));//Tue Sep 22 21:39:15 CST 2020
+System.out.println(Arrays.asList(file4.list()));// [.idea, base.iml, output, src]
+System.out.println(Arrays.asList(file4.listFiles()));// [base\.idea, base\base.iml, base\output, base\src]
+```
+
+- renameTo
+
+**判断方法**
+
+```java
+file1.isDirectory();
+file1.isFile();
+file1.exists();
+file1.canRead();
+file1.canWrite();
+file1.isHidden();
+```
+
+**创建方法**
+
+```java
+// 不写盘符默认在项目路径下
+file1.createNewFile();
+file1.mkdir();
+file1.mkdirs();
+```
+
+**删除功能**
+
+```java
+// java中删除不走回收站
+file1.delete();
+```
+
+**分隔符**
+
+```java
+File.separator;// 在linux下是/，在windows下是\\
+```
+
+## 2.文件内容操作
+
+> 文件内容操作就要用到IO
+
+### 2.1流的分类
+
+- 输入流
+- 输出流
+- 字节流
+- 字符流
+- 节点流--直接作用于文件对象
+- 处理流--将已有的流进行包装
+
+| 抽象基类     | 节点流           | 缓冲流               |
+| ------------ | ---------------- | -------------------- |
+| InputStream  | FileInputStream  | BufferedInputStream  |
+| OutputStream | FileOutputStream | BufferedOutputStream |
+| Reader       | FileReader       | BufferedReader       |
+| Writer       | FileWriter       | BufferedWriter       |
+
+**命名方式**
+
+- InputStream/OutputStream  --  字节流
+- Reader/Writer  --  字符流
+
+![image-20200925235338990](E:\github\fuckJava\笔记\javaSE.assets\image-20200925235338990.png)
+
+### 2.2流的使用
+
+>  主要作用就是进行文件复制和读取
+
+read(byte[],offset,length)中的byte[]是从硬盘读取的时候每次读取多少的限定，二缓冲流每次会先缓存8192个字节到内存中
+
+#### **文件读取**
+
+1. 创建文件
+2. 创建字符流
+3. 进行读取
+4. 关闭流
+
+```java
+package cn.fkJava.test.testio;
+
+import org.junit.Test;
+
+import java.io.*;
+
+public class TestFileReader {
+    @Test
+    public void test() {
+        FileReader fr = null;
+        try {
+            //生成文件
+            File file = new File("test1.txt");
+            //创建字符流
+            fr = new FileReader(file);
+            //对文件进行读取
+            int data = fr.read();// 文件末尾返回-1，否则返回一个字符int格式
+            while (data != -1) {
+                System.out.print((char) data);
+                data = fr.read();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            //关闭流
+            try {
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+#### **文件写入(写入操作允许文件不存在,不存在就创建)**
+
+```java
+ @Test
+    public void test() throws Exception {
+        File file = new File("test1.txt");
+
+        FileWriter fw = new FileWriter(file, true);
+        fw.write("zhansgan\n");
+        fw.write("lisi");
+
+        fw.close();
+    }
+```
+
+#### 文本文件复制
+
+字节流处理可能会出现乱码，如果每个字符都是一个字节能存下的则可以还原，否则会乱码
+
+```java
+@Test
+public void copyFile() throws Exception {
+    File src = new File("test1.txt");
+    File dest = new File("test2.txt");
+
+    FileReader fr = new FileReader(src);
+    FileWriter fw = new FileWriter(dest);
+
+    int date;
+    while ((date = fr.read()) != -1) {
+        fw.write(date);
+    }
+
+    fr.close();
+    fw.close();
+}
+```
+
+#### **字节文件复制**
+
+字符流不能传输非文本文件
+
+```java
+/**
+ * 非文本文件的复制
+ */
+@Test
+public void copyByteFile() {
+    File src = new File("jdk api 1.8_google.CHM");
+    File dest = new File("jdk api 1.8_google.CHM.bak");
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+
+    try {
+        fis = new FileInputStream(src);
+        fos = new FileOutputStream(dest);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) != -1) {
+            fos.write(bytes, 0, length);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            fis.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 缓冲流进行文本文件复制
+
+> 缓冲流读取的时候是从缓冲区通过设置好大小的缓存数组来进行读取，不用缓冲流就是每次用byte[]直接从硬盘读取
+
+可以使用readLine方法,该方法读取到的数据不包含换行符
+
+也可以使用newLine()换行
+
+```java
+/**
+ * 用缓冲流复制文本文件
+ */
+@Test
+public void copyTextFileByBuffer() {
+    File src = new File("test1.txt");
+    File dest = new File("test1bak.txt");
+
+    FileReader fr = null;
+    FileWriter fw = null;
+    BufferedReader br = null;
+    BufferedWriter bw = null;
+    try {
+        fr = new FileReader(src);
+        fw = new FileWriter(dest);
+
+        br = new BufferedReader(fr);
+        bw = new BufferedWriter(fw);
+
+        int length;
+        char[] chars = new char[1];
+        while ((length = br.read(chars)) != -1) {
+            bw.write(chars, 0, length);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            bw.close();
+            br.close();
+            fw.close();
+            fr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 缓冲流进行非文本文件复制
+
+```java
+/**
+ * 用缓冲流复制非字符文件
+ */
+@Test
+public void copyFileByBuffer() {
+    File src = new File("testmov.avi");
+    File dest = new File("testmov2.avi.bak");
+
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+    BufferedInputStream bis = null;
+    BufferedOutputStream bos = null;
+    try {
+        fis = new FileInputStream(src);
+        fos = new FileOutputStream(dest);
+
+        bis = new BufferedInputStream(fis);
+        bos = new BufferedOutputStream(fos);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = bis.read(bytes)) != -1) {
+            bos.write(bytes, 0, length);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            bis.close();
+            bos.close();
+            fis.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### **转换流**
+
+> 提供字节流和字符流的转换功能,可以在构建转换流的时候填入编码，实现文件的编码和解码
+
+```java
+/**
+ * 转换流
+ */
+@Test
+public void transStream() {
+    FileInputStream fis = null;
+    InputStreamReader isr = null;
+    BufferedReader br = null;
+    try {
+        fis = new FileInputStream("test1.txt");
+        isr = new InputStreamReader(fis);
+        br = new BufferedReader(isr);
+
+        String str;
+        char[] chars = new char[1024];
+        while ((str = br.readLine()) != null) {
+            System.out.println(str);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            br.close();
+            isr.close();
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 标准输入/输出流
+
+- system.in
+- system.out
+- setIn--重定向流，不设置默认是键盘输入
+- setOut--重定向流，默认从控制台输出
+
+**将输入输出到控制台，输入e或exit退出**
+
+```java
+/**
+ * 系统流
+ */
+@Test
+public void testSystemStream() {
+    InputStreamReader isr = null;
+    BufferedReader br = null;
+    try {
+        isr = new InputStreamReader(System.in);
+        br = new BufferedReader(isr);
+        String str;
+        while (true) {
+            str = br.readLine();
+            if ((str.equals("e")) || (str.equals("exit"))) {
+                break;
+            }
+            System.out.println(str);
+        }
+        System.out.println("结束");
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            br.close();
+            isr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**将输入转化成需要的类型的值，比如scanner的nextInt()方法**
+
+#### 打印流
+
+- PrintStream
+- PrintWriter
+
+> 一般通过配合system.setOut()方法将输出保存下来而不输出到控制台
+
+```java
+/**
+ * 打印流+系统流
+ */
+@Test
+public void testPrintStream() {
+    PrintStream pw = null;
+    try {
+        File file = new File("test3.txt");
+        FileOutputStream fos = new FileOutputStream(file);
+        pw = new PrintStream(fos, true);
+        System.setOut(pw);
+        System.out.println("zhangsan\nlisi\nwangwu");
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pw.close();
+    }
+}
+```
+
+#### 数据流
+
+> 用于操作基本数据类型和String,可以直接返回或者写入对应数据格式的数据
+
+数据流读的时候要和写的时候顺序以及对应的数据类型一致，否则报错
+
+```java
+/**
+ * 数据流
+ */
+@Test
+public void testDataStream() {
+    DataInputStream dis = null;
+    DataOutputStream dos = null;
+    try {
+        File file = new File("test1.txt");
+        dos = new DataOutputStream(new FileOutputStream(file));
+        dis = new DataInputStream(new FileInputStream(file));
+        dos.writeUTF("zhangsan");
+        dos.writeBoolean(true);
+        String str = dis.readUTF();
+        boolean flag = dis.readBoolean();
+        System.out.println(str + '\n' + flag);
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            dis.close();
+            dos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 对象流
+
+> 用于序列化和反序列化
+
+可以将任何实现了serializable转换成二进制字节流，序列化是RMI(远程方法调用)和javaEE的基础
+
+**对象序列化机制概念**
+
+对象序列化机制是指对象可以转换成二进制流，存在磁盘上或者通过网络传输出去，其他程序获取到该二进制流后可以还原出原本的java对象
+
+#### 对数据进行序列化和反序列化
+
+```java
+/**
+ * 对象流序列化和反序列化
+ */
+@Test
+public void testObjectStream() {
+    ObjectOutputStream oos = null;
+    ObjectInputStream ois = null;
+    try {
+        File file = new File("test.dat");
+        oos = new ObjectOutputStream(new FileOutputStream(file));
+        oos.writeObject(new String("i love Beijing!"));
+        oos.flush();
+        ois = new ObjectInputStream(new FileInputStream(file));
+        System.out.println(ois.readObject());
+    } catch (IOException e) {
+        e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+## 3.流的常用方法
+
+**Reader**
+
+- read
+- read(char[])
+
+**InputStream**
+
+- read
+- read(byte[])
+
 # 网络编程
 
 # 多线程和高并发
@@ -1432,7 +1931,43 @@ public class TestAnnotation2 {
 }
 ```
 
-## 3.自定义注解
+## 3.元注解
+
+```java
+// 用于修饰注解的注解
+public class TestMetaAnnotation {
+    @Target(ElementType)// 参数为枚举
+    @Retention(RetentionPolicy)// 参数为枚举
+    @Documented
+    @Inherited// 修饰的注解都可以被子类继承
+}
+```
+
+**ElementType表示注解修饰的类型**
+
+1. @Target(ElementType.TYPE)  //接口、类、枚举、注解
+2. @Target(ElementType.FIELD) //字段、枚举的常量
+
+3. @Target(ElementType.METHOD) //方法
+
+4. @Target(ElementType.PARAMETER) //方法参数
+
+5. @Target(ElementType.CONSTRUCTOR) //构造函数
+
+6. @Target(ElementType.LOCAL_VARIABLE)//局部变量
+
+7. @Target(ElementType.ANNOTATION_TYPE)//注解
+
+8. @Target(ElementType.PACKAGE) ///包  
+
+
+**RetentionPolicy**
+
+1. SOURCE--保存在源码
+2. CLASS--保存在字节码文件中
+3. RUNTIME--运行的时候加载到JVM中，保存在内存里【只有这种才能通过反射获取】
+
+## 4.自定义注解
 
 **如果没有值的注解被称为标记注解**
 
@@ -1476,6 +2011,69 @@ class Test {
     @TestAnnotation3
     void Test3() {
 
+    }
+}
+```
+
+## 5.可重复注解
+
+> 声明Repeatable(需要重复的注解类名)注解
+
+在注解中标明在哪个注解类中重复使用，rentention和target要一致，然后就可以对同一个元素使用多个相同的注解了
+
+rentention和target不一致则编译报错，如果两个注解一个是@inherited标注的另外一个不是则运行报错
+
+```java
+// MyAnnotation
+package cn.fkJava.test.testAnnotation;
+
+import java.lang.annotation.*;
+
+@Repeatable(MyAnnotations.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD,ElementType.METHOD,ElementType.TYPE,ElementType.PARAMETER,ElementType.CONSTRUCTOR})
+public @interface MyAnnotation {
+    String value();
+}
+```
+
+```java
+package cn.fkJava.test.testAnnotation;
+
+import java.lang.annotation.*;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD,ElementType.METHOD,ElementType.TYPE,ElementType.PARAMETER,ElementType.CONSTRUCTOR})
+public @interface MyAnnotations {
+    MyAnnotation[] value();
+}
+
+class TestXX{
+    @MyAnnotation(value="a")
+    @MyAnnotation(value="b")
+    public static void main(String[] args) {
+
+    }
+}
+```
+
+## 6.类型注解
+
+- TYPE_PARAMETER用于类型声明处
+- TYPE_USE用于类型使用处
+
+```java
+// 这里是TYPE_PARAMETER
+class TestXX<@MyAnnotation(value="c") T>{
+    @MyAnnotation(value="a")
+    @MyAnnotation(value="b")
+    public static void main(String[] args) {
+
+    }
+
+    // 这里是PARAMETER
+    void test(@MyAnnotation(value="a") int a){
+        double aaa = (@MyAnnotation(value="c") double) a;// 这里要用TYPE_USE
     }
 }
 ```
@@ -1620,3 +2218,17 @@ Class::method
 - count
 
 参考`public interface Stream<T>`
+
+# 补充：编码
+
+## 1.UTF-8编码的二进制存储方式
+
+![image-20200924171348664](.\javaSE.assets\image-20200924171348664.png)
+
+首先查询unicode编码a，看unicode编码a对应的16进制，再按照上图对应找二进制格式，将a转成二进制数b，将b按照位数依次填入上述的x处即为最终存储的二进制数
+
+## 2.字符集
+
+ANSI是对应操作系统的编码，英文操作系统是ISO-8859-1,中文操作系统是GBK
+
+![image-20200924171639786](.\javaSE.assets\image-20200924171639786.png)
