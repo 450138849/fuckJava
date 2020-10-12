@@ -230,7 +230,7 @@ D:int[][] arr =  {{1,2,3}}//C的简化版本
 
 ## 其他修饰符
 
-- static--静态，静态变量不能被修改，静态方法只能包含静态变量，可以使用 类名.[方法名|类名]调用静态[变量|方法]
+- static--静态，静态变量不能被修改，静态方法只能包含静态变量，可以使用 类名.[方法名|类名]调用静态[变量|方法]**静态变量为同一个类的实例共享**
 - final--最终的，最终的类不能被继承扩展，最终的方法不能被重写
 - abstract--抽象
 - synchronize--同步
@@ -362,6 +362,11 @@ public class Child extends Foo {
 }
 
 ```
+
+**方法重写规则**
+
+1. 重写方法权限更大
+2. 重写方法不能抛出新的异常或者比被重写方法声明的检查异常更广的检查异常。但是可以抛出更少，更有限或者不抛出异常。
 
 ## 10.4抽象类
 
@@ -1454,6 +1459,8 @@ File.separator;// 在linux下是/，在windows下是\\
 
 > 文件内容操作就要用到IO
 
+注意流的read方法是一个阻塞方法
+
 ### 2.1流的分类
 
 - 输入流
@@ -1475,7 +1482,7 @@ File.separator;// 在linux下是/，在windows下是\\
 - InputStream/OutputStream  --  字节流
 - Reader/Writer  --  字符流
 
-![image-20200925235338990](E:\github\fuckJava\笔记\javaSE.assets\image-20200925235338990.png)
+![image-20200925235338990](.\javaSE.assets\image-20200925235338990.png)
 
 ### 2.2流的使用
 
@@ -1840,7 +1847,12 @@ public void testDataStream() {
 
 > 用于序列化和反序列化
 
-可以将任何实现了serializable转换成二进制字节流，序列化是RMI(远程方法调用)和javaEE的基础
+- 可以将任何**实现了serializable**转换成二进制字节流，序列化是RMI(远程方法调用)和javaEE的基础
+- 序列化的时候最好手动**指定serialVersionUID**,否则如果在序列化之后对类进行修改之后，serialVersionUID会改变，从而无法反序列化
+- **当用类型作为另一个类的成员变量的时候，作为成员变量的类型也要满足序列化条件**
+- **static和transient修饰的变量不会进行序列化**
+- String已经实现了Serializable接口
+- 基本数据类型都可以直接序列化
 
 **对象序列化机制概念**
 
@@ -1877,6 +1889,99 @@ public void testObjectStream() {
 }
 ```
 
+**自定义序列化和反序列化**
+
+```java
+public class Person implements Serializable {
+    String name = "zhangsan";
+    int age = 10;
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+}
+```
+
+```java
+/**
+ * 自定义对象序列化和反序列化
+ */
+@Test
+public void testCustomObjectStream() {
+    File file = new File("test.dat");
+    ObjectOutput oos = null;
+    ObjectInputStream ois = null;
+    try {
+        oos = new ObjectOutputStream(new FileOutputStream(file));
+        oos.writeObject(new Person());
+        oos.flush();
+        ois = new ObjectInputStream(new FileInputStream(file));
+        System.out.println(ois.readObject());
+    } catch (IOException e) {
+        e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            ois.close();
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### RandomAccessFile
+
+**主要方法**
+
+- read( [byte[]] )
+- seek(index)--调整指针位置
+
+```java
+/**
+ * 随机存取文件流
+ */
+@Test
+public void testRAF() {
+    RandomAccessFile raf = null;
+    try {
+        raf = new RandomAccessFile(new File("test2.txt"), "r");
+        String str;
+        raf.seek(5);// 这里将跳过四个字节
+        while ((str = raf.readLine()) != null) {
+            System.out.println(str);// world!zhansganlisizhangsan
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            raf.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**文件复制**
+
+**覆盖文本**
+
+**插入文本**
+
+**追加文本**
+
+**多线程下载的思路**
+
+- 文件拆分
+- 记录起点和当前位置
+
 ## 3.流的常用方法
 
 **Reader**
@@ -1889,9 +1994,641 @@ public void testObjectStream() {
 - read
 - read(byte[])
 
+## 4.io第三方包
+
+commons.jar
+
 # 网络编程
 
+## **网络协议**
+
+![image-20200929095242949](E:\github\fuckJava\笔记\javaSE.assets\image-20200929095242949.png)
+
+![image-20200929095308569](E:\github\fuckJava\笔记\javaSE.assets\image-20200929095308569.png)
+
+## InetAddress类
+
+**常用方法**
+
+- getAddress()--获取实例对应的ip地址
+- getByName(String host)--通过名称获取IP地址
+- getHostAddress()--返回IP地址
+- getHostName()--获取hostname
+- getLocalHost()--返回本地主机名&IP
+
+```java
+public class TestInet {
+    @Test
+    public void testInet() throws Exception {
+        InetAddress inet = InetAddress.getByName("localhost");
+        InetAddress inet2 = InetAddress.getByName("192.168.1.1");
+        InetAddress inet3 = InetAddress.getLocalHost();
+
+
+        System.out.println(inet);// localhost/127.0.0.1 通过域名
+        System.out.println(inet2);// /192.168.1.1 通过ip
+        System.out.println(inet3);// DESKTOP-NAQ7MAF/192.168.2.225
+        System.out.println(inet.getHostName());// localhost
+        System.out.println(inet.getHostAddress());// 127.0.0.1
+    }
+}
+```
+
+## **基本概念**
+
+**IP**
+
+- ipv4
+- ipv6
+
+**网络套接字**
+
+IP+port
+
+端口4个字节定义，最大为2^16=65535
+
+## **TCP**
+
+三次握手
+
+1. A确认连接
+2. B反馈
+3. A反馈
+
+四次挥手
+
+1. A请求断开连接
+2. B确认接受断开请求
+3. B反馈已断开
+4. A测试是否断开
+
+**练习**
+
+1. 客户端发送一条数据到服务端
+2. 客户端发送一个文件到服务端并保存
+3. 客户端发送文件到服务端保存并返回一条信息
+4. 客户端多次往服务端发送数据并返回
+5. 多个客户端之间相互通信
+
+## UDP
+
+```java
+package cn.fkJava.test.testio;
+
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
+public class TestUDPClient {
+
+    /**
+     * 通过UDP协议发送数据
+     */
+    @Test
+    public void testUDPClient() {
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket();
+            InetAddress inet = InetAddress.getLocalHost();
+            byte[] buf = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, inet, 5060);
+            packet.setData("hello server".getBytes());
+            socket.send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            socket.close();
+        }
+    }
+
+    /**
+     * UDPServer
+     */
+    @Test
+    public void testUDPServer() {
+        DatagramSocket server = null;
+        try {
+            server = new DatagramSocket(5060);
+            byte[] buf = new byte[1024];
+            DatagramPacket packet = new DatagramPacket(buf, 0, buf.length);
+            server.receive(packet);
+            System.out.println(new String(packet.getData(), 0, packet.getData().length));// 这里如果不重新构造则打印对象哈希值
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            server.close();
+        }
+    }
+}
+```
+
 # 多线程和高并发
+
+**几个基本概念**
+
+- 程序--完成特定任务的指令集
+- 进程--运行中的程序
+- 线程--调度和执行的最小单位，拥有独立的运行栈和程序计数器
+
+![image-20201011102515985](.\javaSE.assets\image-20201011102515985.png)
+
+**一个java程序至少有三个线程:main,gc,异常处理**
+
+**线程重命名**
+
+- 构造器命名
+- 使用线程的setName方法
+
+**常用方法**
+
+1. yield
+2. join
+3. isAlive
+
+## 用例
+
+使用runnable接口方式，由于可以把同一个对象传入不同的线程，所以在公用属性的时候比较方便，thread方式要将共享的属性声明为static的
+
+```java
+package cn.fkJava.test.thread;
+
+/**
+ * 线程优先级
+ */
+public class Thread3 extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Thread.currentThread().getName());
+        }
+    }
+
+    public static void main(String[] args) {
+        Thread3 thread1 = new Thread3();
+        Thread3 thread2 = new Thread3();
+
+        thread1.setName("线程-1");
+        thread2.setName("线程-2");
+        System.out.println(thread1.getPriority());//默认优先级是5
+        System.out.println(thread2.getPriority());
+        thread1.setPriority(MAX_PRIORITY);//MAX_PRIORITY 10 NORM_PRIORITY 5 MIN_PRIORITY 1
+        thread2.setPriority(MIN_PRIORITY);//优先级越大的大概率优先执行，但是不能绝对保证
+
+        thread1.start();
+        thread2.start();
+    }
+}
+```
+
+## 生命周期
+
+![image-20201012142321056](E:\github\fuckJava\笔记\javaSE.assets\image-20201012142321056.png)
+
+## 实现多线程的几种方式
+
+1. 继承Thread类
+2. 实现Runnable接口
+3. 实现Callable接口(这种方式可以获取call方法的返回值)
+4. 使用线程池
+
+```java
+/**
+ * 用thread方式创建线程
+ */
+public class Thread1 extends Thread{
+    @Override
+    public void run() {
+        System.out.println("run thread");
+    }
+
+    public static void main(String[] args) {
+        Thread1 thread =  new Thread1();
+        new Thread(thread).run();
+    }
+}
+```
+
+```java
+/**
+ * 实现runnable接口创建线程
+ */
+public class Thread2 implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("run thread2");
+    }
+
+    public static void main(String[] args) {
+        Thread2 thread = new Thread2();
+        new Thread(thread).run();
+    }
+}
+```
+
+```java
+/**
+ * 实现Callable接口
+ * 优点：可以有返回值，可以抛出异常,支持泛型
+ */
+public class Thread4 implements Callable {
+
+    @Override
+    public Object call() throws Exception {
+        System.out.println("启动线程");
+        return 1;
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        Thread4 t4 = new Thread4();
+        FutureTask ft = new FutureTask(t4);
+        new Thread(ft).start();//ft实现了runnable接口，所以可以传入Thread的构造方法
+        System.out.println(ft.get());//FutureTask.get()可以获取call方法的返回值
+    }
+}
+```
+
+## 线程池
+
+**线程池的作用**
+
+> 提前创建好多个线程，避免重复创建和销毁线程浪费资源，提高响应速度，方便用统一的方法管理线程
+
+**ExcutorService是线程池接口**
+
+- execute(Runnable)--执行线程，无返回值，传入Runnable
+- submit(Callable)--执行线程有返回值，传入Callable
+- shutdown()--关闭线程池
+
+**Executors是线程池工厂类，用于获取不同类型的线程池**
+
+```java
+// 示例
+Executors.newCachedThreadPool();//随时添加新线程的线程池
+Executors.newSingleThreadExecutor();//只有一个线程的线程池
+Executors.newFixedThreadPool();//固定长度的线程池
+Executors.newScheduledThreadPool();//延迟或定期执行的线程池
+```
+
+**示例**
+
+```java
+package cn.fkJava.test.thread;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ThreadPool {
+    public static void main(String[] args) {
+        ExecutorService es = Executors.newFixedThreadPool(10);
+        es.execute(new Thread2());
+        es.submit(new Thread4());
+        es.shutdown();// 关闭线程池
+    }
+}
+```
+
+```java
+/**
+ * 实现runnable接口创建线程
+ */
+public class Thread2 implements Runnable {
+    @Override
+    public void run() {
+        System.out.println("run thread2");
+    }
+
+    public static void main(String[] args) {
+        Thread2 thread = new Thread2();
+        new Thread(thread).run();
+    }
+}
+```
+
+```java
+/**
+ * 实现Callable接口
+ * 优点：可以有返回值，可以抛出异常，支持泛型
+ */
+public class Thread4 implements Callable<Integer> {
+
+    @Override
+    public Integer call() throws Exception {
+        System.out.println("启动线程");
+        return 1;
+    }
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        Thread4 t4 = new Thread4();
+        FutureTask ft = new FutureTask(t4);
+        new Thread(ft).start();//ft实现了runnable接口，所以可以传入Thread的构造方法
+        System.out.println(ft.get());//FutureTask.get()可以获取call方法的返回值
+    }
+}
+```
+
+## 解决线程安全问题
+
+三种方法：
+
+1. 同步代码块
+2. 同步方法
+3. 同步锁
+
+**同步方法**
+
+```java
+/**
+ * 使用同步方法来解决线程同步问题
+ */
+class Ticket2Imp2 implements Runnable {
+    private int num = 1000;//售票总数
+    Object obj = new Object();
+
+    @Override
+    public void run() {
+        while (true) {
+            show();
+        }
+    }
+
+    public synchronized void show() {//这里使用的锁是this
+        if (num > 0) {
+            System.out.println(Thread.currentThread().getName() + ":售出第" + num + "张票");
+            num--;
+        }
+    }
+}
+
+// 继承thread方式,由于this不能指代唯一对象，每个new Thread()创建的this都是新的对象，所以要另外的方式处理
+class Ticket2Imp3 extends Thread {
+    private static int num = 1000;//售票总数
+
+    @Override
+    public void run() {
+        while (true) {
+            show();
+            if (num == 0) {
+                break;
+            }
+        }
+    }
+
+    public static synchronized void show() {//由于使用了static,这里的锁不可能调用this，这里使用的锁是Ticket2Imp3.class
+        if (num > 0) {
+            System.out.println(Thread.currentThread().getName() + ":售出第" + num + "张票");
+            num--;
+        }
+    }
+}
+```
+
+**同步代码块**
+
+```java
+/**
+ * 用同步代码块的方式解决线程安全问题
+ */
+class Ticket2Imp1 implements Runnable {
+    private int num = 1000;//售票总数
+    Object obj = new Object();
+
+    @Override
+    public void run() {
+        for (int i = num; i > 0; i--) {
+            // 锁一定要使用相同的对象，如果使用thread方式由于不能传this指代唯一对象，可以使用类名.class获取Class对象，该对象唯一
+            synchronized (obj) {
+                if (num > 0) {
+                    System.out.println(Thread.currentThread().getName() + ":售出第" + num + "张票");
+                    num--;
+                }
+            }
+        }
+    }
+}
+```
+
+## 死锁
+
+> 互相等待对方释放锁
+
+```java
+/**
+ * 两个方法同时执行的时候，由于互相持有对方需要的锁，导致程序锁死，如果一边先执行完另外一边也可以执行完
+ */
+public class DeadLock {
+    private static Object left = new Object();
+    private static Object right = new Object();
+
+    public void leftRight() throws InterruptedException {
+        synchronized (left) {
+            System.out.println("a");
+            Thread.sleep(100);
+            synchronized (right) {
+                System.out.println("b");
+            }
+        }
+    }
+
+    public void rightLeft() throws InterruptedException {
+        synchronized (right) {
+            System.out.println("c");
+            Thread.sleep(100);
+            synchronized (left) {
+                System.out.println("d");
+            }
+        }
+    }
+
+    // 主方法
+    public static void main(String[] args) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new DeadLock().rightLeft();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new DeadLock().leftRight();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+}
+```
+
+## 同步锁
+
+```java
+/**
+ * 同步锁方式
+ */
+class Ticket2Imp4 implements Runnable {
+    private static int num = 1000;//售票总数
+    ReentrantLock lock = new ReentrantLock(true);// 参数表示是否公平，即先入先出
+
+    @Override
+    public void run() {
+        while (true) {
+            lock.lock();
+            if (num > 0) {
+                System.out.println(Thread.currentThread().getName() + ":售出第" + num + "张票");
+                num--;
+            } else {
+                break;
+            }
+            lock.unlock();
+        }
+    }
+}
+```
+
+## 线程交互
+
+```java
+package cn.fkJava.test.thread.ticket;
+
+/**
+ * 线程交互案例
+ */
+public class ThreadInteraction {
+    public static void main(String[] args) {
+        TestThread1 t1 = new TestThread1();
+        new Thread(t1, "窗口1").start();
+        new Thread(t1, "窗口2").start();
+    }
+}
+
+class TestThread1 implements Runnable {
+    private int num = 100;
+
+    @Override
+    public void run() {
+        while (num > 0) {
+            synchronized (this) {
+                this.notify();//注意notify() wait() notifyAll()都必须要指定调用对象，并且要与锁对象一致
+                System.out.println(Thread.currentThread().getName() + "：" + num);
+                num--;
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
+### 生产者-消费者模式
+
+```java
+package cn.fkJava.test.thread.ticket;
+
+/**
+ * 线程通信--生产者消费者模式
+ */
+public class ThreadInteraction2 {
+    public static void main(String[] args) {
+        Product pro = new Product();
+        Producer producer = new Producer(pro);
+        Consumer consumer = new Consumer(pro);
+        new Thread(producer, "生产者").start();
+        new Thread(consumer, "消费者").start();
+    }
+}
+
+class Consumer implements Runnable {
+    private Product pro;//资源数量
+
+    public Consumer(Product pro) {
+        this.pro = pro;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            synchronized (pro) {
+                if (pro.getNum() == 0) {
+                    try {
+                        System.out.println("等待生产者生产...");
+                        pro.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                pro.setNum(pro.getNum() - 1);
+                System.out.println("消费了一个包子，剩余" + pro.getNum() + "个");
+                pro.notify();
+
+            }
+        }
+    }
+}
+
+class Producer implements Runnable {
+    private Product pro;//资源数量
+
+    public Producer(Product pro) {
+        this.pro = pro;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            synchronized (pro) {
+                if (pro.getNum() == 20) {
+                    try {
+                        System.out.println("等待消费者消费...");
+                        pro.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                pro.setNum(pro.getNum() + 1);
+                System.out.println("生产了一个包子，剩余" + pro.getNum() + "个");
+                pro.notify();
+            }
+        }
+    }
+}
+
+class Product {
+    private int num;//产品数量
+
+    public int getNum() {
+        return num;
+    }
+
+    public void setNum(int num) {
+        this.num = num;
+    }
+}
+
+```
+
+## sleep()和wait()的异同
+
+相同：
+
+- 都会进入阻塞状态
+
+不同：
+
+- sleep()不会释放锁，wait()会释放锁
+- sleep()是Thread中声明的方法，wait()是Object中声明的方法
+- sleep()在任何地方都可以调用,wait()在同步代码当中才能调用(但是要注意调用对象)
 
 # 注解
 
@@ -2141,10 +2878,396 @@ class TestXX<@MyAnnotation(value="c") T>{
 ## 5.自定义异常
 
 - 写一个类继承自Exception
-- 重写对应报错的方法
-- 捕获并处理自定义异常
+- 写构造方法
+- 捕获并抛出自定义异常
 
 # 反射
+
+用于运行时获取类的信息
+
+反射可以动态构造对象，当编译的时候不能确定对象的时候使用反射。
+
+**反射相关的类**
+
+- Class
+- Field
+- Method
+
+**常用class方法**
+
+- getConstructor
+- newInstance--调用空构造器，权限要够(javabean标准中需要无参构造的原因)
+- getDeclaraMethod
+- getDeclaredMethods()
+- getDeclaredField(String name)
+- getDeclaredFields()
+
+**常用Method方法**
+
+- invoke(Object,args)
+
+**常用Field方法**
+
+- setAccessible(boolean)
+- set
+
+## 基本用法
+
+**1.通过反射创建类的对象**
+
+
+
+**2.通过反射获取运行时类的属性，方法，构造器以及注解、权限修饰符、数据类型、变量名等全面的结构信息(包，接口)**
+
+
+
+**3.获取方法详细信息（修饰符、返回值类型、方法名、参数、注解，抛出异常）**
+
+
+
+**4.获取全部构造器和声明为public的构造器**
+
+
+
+**5.获取父类、获取带泛型的父类，获取父类的泛型类型**
+
+
+
+**6.获取并使用运行时类的[指定的]属性，方法，构造器**
+
+
+
+**7.读取配置文件中的信息**
+
+## Class类
+
+java.exe对字节码文件进行解释运行，将字节码文件加载到内存中，此时加载到内存中的类就是Class的一个实例
+
+> 数组的维度和类型一样，则getClass获取到的就是同一个类
+
+**获取class实例**
+
+1. .class
+2. getClass()
+3. Class.forName("全限定名")
+4. 运行类.class.getClassLorder().loadClass("全限定名")
+
+**调用指定的构造器**
+
+
+
+## 类加载器
+
+- 引导--加载核心类库(无法获取到)
+- 扩展--加载jre/lib/ext下的jar包或指定目录下的jar包到工作库
+- 系统--classpath下的jar包和类库加载
+- 自定义
+
+> 自下而上寻找类是否已经加载，自上而下进行类加载
+
+```java
+// 类加载源码
+protected Class<?> loadClass(String name, boolean resolve)
+    throws ClassNotFoundException
+{
+    synchronized (getClassLoadingLock(name)) {
+        // First, check if the class has already been loaded
+        Class<?> c = findLoadedClass(name);//系统加载器加载的类中查找
+        if (c == null) {
+            long t0 = System.nanoTime();
+            try {
+                if (parent != null) {
+                    c = parent.loadClass(name, false);//扩展加载器中查找没有就直接找根加载器
+                } else {
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the non-null parent class loader
+            }
+
+            if (c == null) {
+                // If still not found, then invoke findClass in order
+                // to find the class.
+                long t1 = System.nanoTime();
+                c = findClass(name);// 都无法加载就调用findClass去调用自定义加载器，defineClass方法返回指定的class即可
+
+                // this is the defining class loader; record the stats
+                PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                PerfCounter.getFindClasses().increment();
+            }
+        }
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+}
+```
+
+**classloader加载配置文件**
+
+如果直接使用FileInputStream加载配置文件，默认路径为module下，用类加载器，默认路径在src下
+
+**自定义类加载器**
+
+- 继承ClassLoader
+- 重写findClass方法
+- 调用defineClass方法将字节码文件转换成类
+
+```java
+public class MyClassLoader extends ClassLoader {
+    //指定路径
+    private String path ;
+ 
+ 
+    public MyClassLoader(String classPath){
+        path=classPath;
+    }
+ 
+    /**
+     * 重写findClass方法
+     * @param name 是我们这个类的全路径
+     * @return
+     * @throws ClassNotFoundException
+     */
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        Class log = null;
+        // 获取该class文件字节码数组
+        byte[] classData = getData();
+ 
+        if (classData != null) {
+            // 将class的字节码数组转换成Class类的实例
+            log = defineClass(name, classData, 0, classData.length);
+        }
+        return log;
+    }
+ 
+    /**
+     * 将class文件转化为字节码数组
+     * @return
+     */
+    private byte[] getData() {
+ 
+        File file = new File(path);
+        if (file.exists()){
+            FileInputStream in = null;
+            ByteArrayOutputStream out = null;
+            try {
+                in = new FileInputStream(file);
+                out = new ByteArrayOutputStream();
+ 
+                byte[] buffer = new byte[1024];
+                int size = 0;
+                while ((size = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, size);
+                }
+ 
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException e) {
+ 
+                    e.printStackTrace();
+                }
+            }
+            return out.toByteArray();
+        }else{
+            return null;
+        }
+ 
+ 
+    }
+}
+```
+
+## 反射的应用：动态代理
+
+**静态代理**
+
+> 使用代理调用另一个实现类的方法，并做一些包装，类似于AOP
+
+```java
+package cn.fkJava.test.reflection;
+
+interface Cloth {
+    void produce();
+}
+
+class ClothFactory implements Cloth {
+
+    @Override
+    public void produce() {
+        System.out.println("工厂生产一件衣服");
+    }
+}
+
+class ClothProxy implements Cloth {
+    Cloth cloth = new ClothFactory();
+
+    @Override
+    public void produce() {
+        preProduce();
+        cloth.produce();
+        afterProduce();
+    }
+
+    private void afterProduce() {
+        System.out.println("代理后续工作");
+    }
+
+    private void preProduce() {
+        System.out.println("代理前置工作");
+    }
+}
+
+public class testProxy1 {
+    public static void main(String[] args) {
+        Cloth cloth =  new ClothProxy();
+        cloth.produce();//代理前置工作 工厂生产一件衣服 代理后续工作
+    }
+}
+```
+
+**JDK原生方式**
+
+> 在Java中要想实现动态代理机制，需要java.lang.reflect.InvocationHandler接口和 java.lang.reflect.Proxy 类的支持
+
+- 实现InvocationHandler接口
+- 返回Proxy.newProxyInstance生成的实例
+- 重写invoke方法
+
+```java
+package cn.fkJava.test.reflection;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+//接口
+interface Food {
+    void produce();
+}
+
+//实现类
+class Apple implements Food {
+    @Override
+    public void produce() {
+        System.out.println("苹果装箱!");
+    }
+}
+
+//代理类
+class ProxyFactory implements InvocationHandler {
+    // 目标对象
+    private Object targetObject;
+
+    //绑定关系，也就是关联到哪个接口（与具体的实现类绑定）的哪些方法将被调用时，执行invoke方法。
+    public Object newProxyInstance(Object targetObject) {
+        this.targetObject = targetObject;
+        //该方法用于为指定类装载器、一组接口及调用处理器生成动态代理类实例
+        //第一个参数指定产生代理对象的类加载器，需要将其指定为和目标对象同一个类加载器
+        //第二个参数要实现和目标对象一样的接口，所以只需要拿到目标对象的实现接口
+        //第三个参数表明这些被拦截的方法在被拦截时需要执行哪个InvocationHandler的invoke方法
+        //根据传入的目标返回一个代理对象
+        return Proxy.newProxyInstance(targetObject.getClass().getClassLoader(),
+                targetObject.getClass().getInterfaces(), this);
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Object ret = null;
+
+        preProduce();
+        ret = method.invoke(targetObject, args);
+        afterProduce();
+
+        return ret;
+    }
+
+    private void afterProduce() {
+        System.out.println("代理后置工作");
+    }
+
+    private void preProduce() {
+        System.out.println("代理前置工作");
+    }
+}
+
+public class testDynamicProxy {
+    public static void main(String[] args) {
+        ProxyFactory proxy = new ProxyFactory();
+        // newProxyInstance传入参数有接口类型，所以能够识别接口类型但是不能识别为具体的实现类类型
+        Food food = (Food) proxy.newProxyInstance(new Apple());
+        food.produce();
+    }
+}
+```
+
+**cgLIb实现**
+
+> JDK是实现了被代理对象实现的接口，cgLib是继承了被代理的类
+
+```java
+package cn.fkJava.test.reflection;
+
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
+import java.lang.reflect.Method;
+
+/**
+ * 使用CGLIB不需要实现接口
+ */
+class Water {
+    public void move() {
+        System.out.println("水在流动！");
+    }
+}
+
+class Factory implements MethodInterceptor {
+    public Object getInstance(Class<?> clazz) {
+        Enhancer enhancer = new Enhancer();
+        //告诉cglib，生成的子类需要继承哪个类
+        enhancer.setSuperclass(clazz);
+        //设置回调
+        enhancer.setCallback(this);
+        //生成源代码
+        //编译成class文件
+        //加载到JVM中，并返回被代理对象
+        return enhancer.create();
+    }
+
+    @Override
+    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        before();
+        methodProxy.invokeSuper(o, args);
+        after();
+        return null;
+    }
+
+    private void before() {
+        System.out.println("代理前！");
+    }
+
+    private void after() {
+        System.out.println("代理后!");
+    }
+}
+
+public class TestDynamicProxy2 {
+    public static void main(String[] args) {
+        Factory factory = new Factory();
+        Water water = (Water) factory.getInstance(Water.class);
+        water.move();
+    }
+}
+```
 
 # java8特性
 
@@ -2218,6 +3341,12 @@ Class::method
 - count
 
 参考`public interface Stream<T>`
+
+## Optional类
+
+> 用于处理空值问题的一个类，防止抛出空指针异常
+
+没有optional类的时候，要用if...else做空值判断，有之后可以用optional的方法
 
 # 补充：编码
 

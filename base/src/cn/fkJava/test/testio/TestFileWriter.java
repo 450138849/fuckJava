@@ -285,6 +285,59 @@ public class TestFileWriter {
     }
 
     /**
+     * 自定义对象序列化和反序列化
+     */
+    @Test
+    public void testCustomObjectStream() {
+        File file = new File("test.dat");
+        ObjectOutput oos = null;
+        ObjectInputStream ois = null;
+        try {
+            oos = new ObjectOutputStream(new FileOutputStream(file));
+            oos.writeObject(new Person());
+            oos.flush();
+            ois = new ObjectInputStream(new FileInputStream(file));
+            System.out.println(ois.readObject());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                ois.close();
+                oos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 随机存取文件流
+     */
+    @Test
+    public void testRAF() {
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(new File("test2.txt"), "r");
+            String str;
+            raf.seek(5);// 这里将跳过四个字节
+            while ((str = raf.readLine()) != null) {
+                System.out.println(str);// world!zhansganlisizhangsan
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                raf.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    /**
      * 测试缓冲流的性能
      */
     @Test

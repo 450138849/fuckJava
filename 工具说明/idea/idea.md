@@ -47,3 +47,8 @@ file->project structure->libaries=>+
 ## 配置代码模板
 
 ![image-20200730203213706](idea.assets/image-20200730203213706.png)
+
+> 在 postfixCompletion当中可以配置后缀触发的模板，而在LiveTemplate中配置的是直接根据关键词触发的模板
+
+填充变量的时候可以使用的函数参考https://www.jetbrains.com/help/idea/template-variables.html#pdtv
+
