@@ -13,17 +13,25 @@ import java.net.Socket;
  * 客户端发送一条信息，服务端接收
  */
 public class TestTCPServer {
-    @Test
-    public void testServer() {
-        ServerSocket ss = null;
+    private ServerSocket ss = null;
+
+    public TestTCPServer() {
+        try {
+            this.ss = new ServerSocket(8090);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void start() {
+        Socket socket = null;
         InputStream is = null;
         BufferedReader br = null;
         try {
-            ss = new ServerSocket(8900);
-            Socket server = ss.accept();
-            is = server.getInputStream();
+            socket = ss.accept();
+            is = socket.getInputStream();
             br = new BufferedReader(new InputStreamReader(is));
-            String str;
+            String str = null;
             while ((str = br.readLine()) != null) {
                 System.out.println(str);
             }
@@ -33,6 +41,7 @@ public class TestTCPServer {
             try {
                 br.close();
                 is.close();
+                socket.close();
                 ss.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -40,4 +49,8 @@ public class TestTCPServer {
         }
     }
 
+    public static void main(String[] args) {
+        TestTCPServer server1 = new TestTCPServer();
+        server1.start();
+    }
 }

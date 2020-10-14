@@ -309,10 +309,11 @@ public class Test{
 
 **初始化顺序：**
 
-1. 系统初始化(变量初始化等操作)
-2. 声明
-3. 构造代码块{}
-4. 构造器
+> 静态->普通->构造器
+>
+> 父类->子类
+
+![image-20201014200814247](\javaSE.assets\image-20201014200814247.png)
 
 ## 10.3继承
 
@@ -2062,13 +2063,14 @@ IP+port
 3. B反馈已断开
 4. A测试是否断开
 
-**练习**
+### **练习**
 
 1. 客户端发送一条数据到服务端
-2. 客户端发送一个文件到服务端并保存
-3. 客户端发送文件到服务端保存并返回一条信息
-4. 客户端多次往服务端发送数据并返回
-5. 多个客户端之间相互通信
+2. 客户端发送多条数据到服务端
+3. 多个客户端发送到服务端
+4. 服务端将接收到的多个客户端的数据发送给所有的客户端并在客户端显示
+5. 线程池优化
+6. 使用UDP进行相互通信
 
 ## UDP
 
@@ -2697,8 +2699,7 @@ public class TestMetaAnnotation {
 
 8. @Target(ElementType.PACKAGE) ///包  
 
-
-**RetentionPolicy**
+**RetentionPolicy**(保留策略--在何种情况下进行保留)
 
 1. SOURCE--保存在源码
 2. CLASS--保存在字节码文件中
@@ -2817,6 +2818,8 @@ class TestXX<@MyAnnotation(value="c") T>{
 
 ## 注解处理器
 
+> 通过反射对注解进行处理
+
 # 异常处理
 
 > 如果没有异常类，处理异常的手段是用if...else..等臃肿的代码自行判断可能出现的问题并进行处理，代码臃肿且不易维护。
@@ -2913,31 +2916,247 @@ class TestXX<@MyAnnotation(value="c") T>{
 
 ## 基本用法
 
-**1.通过反射创建类的对象**
+测试使用的类和自定义的注解
+
+```java
+// 这里使用默认值
+@PersonAnnotation
+class Person {
+    public int age;
+    private String name;
+
+    public Person() {
+    }
+
+    public Person(int age, String name) {
+        this.age = age;
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "age=" + age +
+                ", name='" + name + '\'' +
+                '}';
+    }
+}
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@interface PersonAnnotation {
+    String value() default "non-value";
+}
+```
+
+### 1.通过反射创建类的对象
+
+```java
+Person person = Person.class.newInstance();// 调用空的构造器方法
+Constructor personConstructor = person.getClass().getDeclaredConstructor(int.class, String.class);// 调用指定参数类型的构造器
+Person person2 = (Person) personConstructor.newInstance(10, "zhangsan");
+```
+
+### 2.通过反射获取运行时类的信息
+
+```java
+/**
+ * 通过反射获取运行时类的属性:
+ */
+public class GetClass {
+    public static void main(String[] args) {
+        //获取权限修饰符
+        int modifier = Person.class.getModifiers();
+        System.out.println(modifier);// 0(表示public)
+        //获取类名
+        String name = Person.class.getName();
+        String name2 = Person.class.getSimpleName();
+        System.out.println(name);//cn.fkJava.test.reflection.Person
+        System.out.println(name2);//Person
+        //获取实现的接口
+        Class<?>[] interfaces = Person.class.getInterfaces();
+        for (Class<?> anInterface : interfaces) {
+            System.out.println(anInterface.getName());//Serializable
+        }
+        //获取公共变量
+        Field[] fields = Person.class.getFields();
+        Arrays.stream(fields).forEach(System.out::println);//public int cn.fkJava.test.reflection.Person.age
+        //获取全部变量
+        Field[] declaredFields = Person.class.getDeclaredFields();
+        Arrays.stream(declaredFields).forEach(System.out::println);
+        /**
+         * public int cn.fkJava.test.reflection.Person.age
+         * private java.lang.String cn.fkJava.test.reflection.Person.name
+         */
+        //public int cn.fkJava.test.reflection.Person.age
+        // 获取构造器
+        Constructor[] personCons = Person.class.getDeclaredConstructors();
+        for (Constructor personCon : personCons) {
+            System.out.println(personCon);
+        }
+        /**
+         * public cn.fkJava.test.reflection.Person()
+         * public cn.fkJava.test.reflection.Person(int,java.lang.String)
+         */
 
 
+    }
+}
+```
 
-**2.通过反射获取运行时类的属性，方法，构造器以及注解、权限修饰符、数据类型、变量名等全面的结构信息(包，接口)**
+### 3.获取属性的信息
 
+```java
+/**
+ * 通过反射获取属性信息
+ */
+public class GetFields {
+    public static void main(String[] args) throws Exception {
+        Person person = new Person();
+        //获取属性
+        Field age = person.getClass().getField("age");
+        Field name = person.getClass().getDeclaredField("name");//getDeclaredField可以获取全部属性getField只能获取私有属性
+        //获取变量类型
+        System.out.println(age.getType());//int
+        //获取变量的注解
+        System.out.println(age.getAnnotation(PersonAnnotation.class));//@cn.fkJava.test.reflection.PersonAnnotation("non-value")
+        //获取变量的名称
+        System.out.println(age.getName());//age
+        //设置变量的值
+        age.set(person, 10);
+        name.setAccessible(true);
+        name.set(person, "zhangsan");// 如果不设置访问权限则无法设置这个值，报错为Exception in thread "main" java.lang.IllegalAccessException
+        //获取变量的值
+        System.out.println(age.get(person));//10
+        System.out.println(name.get(person));//zhangsan
+    }
+}
+```
 
+### 4.获取方法详细信息（修饰符、返回值类型、方法名、参数、注解，抛出异常)
 
-**3.获取方法详细信息（修饰符、返回值类型、方法名、参数、注解，抛出异常）**
+```java
+/**
+ * 获取方法运行时的信息
+ */
+public class GetMethod {
+    public static void main(String[] args) throws Exception {
+        //获取方法
+        Method[] methods = Person.class.getMethods();
+        Method[] declaredMethods = Person.class.getDeclaredMethods();
+        Method print1 = Person.class.getDeclaredMethod("print1", String.class);
+        //获取方法名称
+//        Arrays.stream(methods).forEach(x -> System.out.println(x.getName()));//不包含私有方法
+//        Arrays.stream(declaredMethods).forEach(x -> System.out.println(x.getName()));//包含私有方法
+        //获取方法的注解
+        System.out.println(print1.getAnnotation(PersonAnnotation.class));//null
+        //获取方法的修饰符
+        System.out.println(print1.getModifiers());//2
+        //获取方法的返回值类型
+        System.out.println(print1.getReturnType());//void
+        //获取方法的参数列表
+        Arrays.stream(print1.getParameterTypes()).forEach(System.out::println);//class java.lang.String
+        Arrays.stream(print1.getTypeParameters()).forEach(System.out::println);//该方法用于获取泛型参数
+        //获取方法抛出的异常
+        Arrays.stream(print1.getExceptionTypes()).forEach(System.out::println);//class java.lang.Exception
+    }
+}
+```
 
+### 5.获取全部构造器和声明为public的构造器
 
+```java
+Arrays.stream(Person.class.getConstructors()).forEach(System.out::println);//获取public的构造器
+Arrays.stream(Person.class.getDeclaredConstructors()).forEach(System.out::println);//获取全部的构造器
+```
 
-**4.获取全部构造器和声明为public的构造器**
+### 6.获取父类、获取带泛型的父类，获取父类的泛型类型
 
+```java
+System.out.println(Person.class.getSuperclass());// 有父类会继承父类，否则会继承Object
+System.out.println(Person.class.getGenericSuperclass());// 获取泛型类，没有泛型则显示父类名称
+```
 
+### 7.调用方法
 
-**5.获取父类、获取带泛型的父类，获取父类的泛型类型**
+```java
+/**
+ * 调用方法
+ */
+public class InvokeMethod {
+    public static void main(String[] args) throws Exception {
+        Person person = new Person();
+        /**
+         * 调用一般方法
+         */
+        Method toString = person.getClass().getMethod("toString");
+        System.out.println(toString.invoke(person));// Person{age=0, name='null'}
+        /**
+         * 调用私有方法
+         */
+        Method print1 = person.getClass().getDeclaredMethod("print1", String.class);//要使用getDeclaredMethod才能访问到private的方法
+        print1.setAccessible(true);
+        print1.invoke(person, "testArgs");//必须要先设置权限，否则无法调用private权限的方法
+        // 报错Exception in thread "main" java.lang.IllegalAccessException
+    }
+}
+```
 
+### 8.读取配置文件中的信息
 
+```java
+/**
+ * 读取配置文件测试
+ */
+public class GetProperties {
+    @Test
+    public void test1() {
+        InputStream testRelectionReadProperties = GetProperties.class.getResourceAsStream("TestRelectionReadProperties.properties");
+        //注意要将配置文件放在resource下并指派为resource根目录才能用getResourceAsStream()来直接获取
+        Properties properties = new Properties();
+        try {
+            properties.load(testRelectionReadProperties);
+        } catch (IOException e) {
+            System.out.println("未找到指定的类");
+        }
+        System.out.println("properties.get(\"key1\") = " + properties.get("key1"));//properties.get("key1") = zhangsan
+    }
 
-**6.获取并使用运行时类的[指定的]属性，方法，构造器**
-
-
-
-**7.读取配置文件中的信息**
+    /**
+     * 使用File直接读取
+     */
+    @Test
+    public void test2() throws FileNotFoundException {
+        //使用绝对路径可以获取
+//        FileInputStream fis = new FileInputStream(new File("E:\\github\\fuckJava\\base\\src\\cn\\fkJava\\test\\reflection\\TestRelectionReadProperties2.properties"));
+        //项目根目录下可以
+        FileInputStream fis = new FileInputStream(new File("base/src/cn/fkJava/test/reflection/TestRelectionReadProperties2.properties"));
+        Properties pro = new Properties();
+        try {
+            pro.load(fis);
+        } catch (IOException e) {
+            System.out.println("文件找不到");
+        }
+        System.out.println("pro.get(\"key1\") = " + pro.get("key1"));
+    }
+}
+```
 
 ## Class类
 
@@ -3361,3 +3580,10 @@ Class::method
 ANSI是对应操作系统的编码，英文操作系统是ISO-8859-1,中文操作系统是GBK
 
 ![image-20200924171639786](.\javaSE.assets\image-20200924171639786.png)
+
+## 3.路径
+
+File()中可以填入绝对路径的项目相对路径
+
+getResourceAsStream()中可以填入相对于resource的路径来读取文件
+
