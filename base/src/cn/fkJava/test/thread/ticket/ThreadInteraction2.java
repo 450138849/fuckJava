@@ -27,7 +27,7 @@ class Consumer implements Runnable {
                 if (pro.getNum() == 0) {
                     try {
                         System.out.println("等待生产者生产...");
-                        pro.wait();
+                        pro.wait();// wait方法应该放在循环当中，唤醒之后要判断一次条件
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
