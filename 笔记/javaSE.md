@@ -1204,13 +1204,13 @@ public enum TestEnum {
 }
 ```
 
-# 垃圾回收
+# 15.垃圾回收
 
 主动进行垃圾回收
 
 - System.gc()
 
-# Object
+# 16.Object
 
 - 常用方法
 - 如果要根据指定的规则对对象进行比较，则要使用equals()方法
@@ -1218,7 +1218,7 @@ public enum TestEnum {
   - 在hash表当中存储的时候，是根据hashcode先进行寻址，hashcode相同的采用链式存储，然后才调用equals比较hashCode相同的对象
 - clone方法默认是浅拷贝，如果想要深拷贝，需要重写clone方法，在里边重新创建对象并赋值即可
 
-# 集合
+# 17.集合
 
 集合是为了解决对象数量不确定的问题 
 
@@ -1394,7 +1394,7 @@ dogs.stream().allMatch(new Predicate<Dog>() {
 })
 ```
 
-# IO
+# 18.IO
 
 ## 1.文件对象操作
 
@@ -1999,7 +1999,7 @@ public void testRAF() {
 
 commons.jar
 
-# 网络编程
+# 19.网络编程
 
 ## **网络协议**
 
@@ -2072,6 +2072,8 @@ IP+port
 5. 线程池优化
 6. 使用UDP进行相互通信
 
+> 答案见代码里边的network目录
+
 ## UDP
 
 ```java
@@ -2127,7 +2129,7 @@ public class TestUDPClient {
 }
 ```
 
-# 多线程和高并发
+# 20.多线程和高并发
 
 **几个基本概念**
 
@@ -2632,7 +2634,7 @@ class Product {
 - sleep()是Thread中声明的方法，wait()是Object中声明的方法
 - sleep()在任何地方都可以调用,wait()在同步代码当中才能调用(但是要注意调用对象)
 
-# 注解
+# 21.注解
 
 **注解的重要性:**
 
@@ -2820,7 +2822,7 @@ class TestXX<@MyAnnotation(value="c") T>{
 
 > 通过反射对注解进行处理
 
-# 异常处理
+# 22.异常处理
 
 > 如果没有异常类，处理异常的手段是用if...else..等臃肿的代码自行判断可能出现的问题并进行处理，代码臃肿且不易维护。
 
@@ -2884,7 +2886,7 @@ class TestXX<@MyAnnotation(value="c") T>{
 - 写构造方法
 - 捕获并抛出自定义异常
 
-# 反射
+# 23.反射
 
 用于运行时获取类的信息
 
@@ -2919,9 +2921,18 @@ class TestXX<@MyAnnotation(value="c") T>{
 测试使用的类和自定义的注解
 
 ```java
+package cn.fkJava.test.reflection;
+
+import java.io.Serializable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 // 这里使用默认值
 @PersonAnnotation
-class Person {
+class Person extends Test<GenericClass> implements Serializable {
+    @PersonAnnotation
     public int age;
     private String name;
 
@@ -2931,6 +2942,9 @@ class Person {
     public Person(int age, String name) {
         this.age = age;
         this.name = name;
+    }
+
+    Person(String name) {
     }
 
     public int getAge() {
@@ -2949,6 +2963,11 @@ class Person {
         this.name = name;
     }
 
+    @PersonAnnotation
+    private void print1(String name) throws Exception {
+        System.out.println("这是一个私有方法");
+    }
+
     @Override
     public String toString() {
         return "Person{" +
@@ -2958,11 +2977,20 @@ class Person {
     }
 }
 
-@Target(ElementType.TYPE)
+class Test<T> {
+
+}
+
+class GenericClass {
+
+}
+
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @interface PersonAnnotation {
     String value() default "non-value";
 }
+
 ```
 
 ### 1.通过反射创建类的对象
@@ -3488,7 +3516,7 @@ public class TestDynamicProxy2 {
 }
 ```
 
-# java8特性
+# 24.java8特性
 
 ## 函数式接口
 
@@ -3566,6 +3594,132 @@ Class::method
 > 用于处理空值问题的一个类，防止抛出空指针异常
 
 没有optional类的时候，要用if...else做空值判断，有之后可以用optional的方法
+
+# 26.JUC(java.util.concurrent)
+
+## 1.内存可见性问题
+
+> 当变量为多个线程所用时，为了确保值能及时更新，可以使用synchronized关键字，但是效率很低，此时可以使用另外一种轻量级的方式
+
+## 2.原子性问题
+
+> 当有多个线程对数据进行非原子操作的时候，valitile不能保证原子性，原子类使用CAS算法保证原子性
+
+三个操作量：
+
+1. V--内存值，读取的时候保存
+2. A--预估值，更新操作之前读取
+3. B--更新值，当V=A时，才将B进行更新
+
+**效率高的原因：**
+
+当修改失败的时候，不会放弃cpu给与的时间片，会重新尝试修改，不会阻塞，所以快得多
+
+**用例：**
+
+1. 使用原子类
+2. 模拟CAS方法
+
+## 3.同步容器类
+
+## 4.闭锁
+
+> 当线程需要等其他线程执行完毕之后再执行，就使用闭锁(例如要统计十个线程的执行时间，需要等待十个线程都执行完再计算时间，计算时间的进程不能同时进行)
+
+FutureTask也可用于闭锁
+
+## 5.虚假唤醒
+
+> 为了避免虚假唤醒问题，wait()方法应该总是使用在循环中[以生产者-消费者模式为例]
+
+## 6.condition机制
+
+与Object的wait，notify,notifyAll对应的方法是await(),singal(),singnalAll()
+
+## 7.线程按顺序交替
+
+> ABC三个线程按顺序打印
+
+
+
+## 8.读写锁
+
+> 读写/写写互斥   读读不互斥
+
+**实例：一个线程写入之后一百个线程读出**
+
+## 9.线程八锁
+
+![image-20201018112243004](.\javaSE.assets\image-20201018112243004.png)
+
+## 10.线程调度
+
+> 使用scheduleExcutorThreadPool可以完成线程调度
+
+## 11.Fork/Joinpool分支合并框架 工作窃取
+
+**任务拆分实例**
+
+```java
+package cn.fkJava.test.thread;
+
+import org.junit.Test;
+
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
+import java.util.stream.LongStream;
+
+public class TestForkJoin {
+    @Test
+    public void testForkJoin() {
+        ForkJoinPool forkJoinPool = new ForkJoinPool();
+        ForkJoinTask<Long> task = new ForkJoinSumCalculate(0L, 100000000L);
+        Long result = forkJoinPool.invoke(task);// 获取计算的返回值
+//        Long result = ForkJoinPool.commonPool().invoke(task); //使用这种方式也可以触发任务
+        System.out.println(result);
+    }
+
+    // jdk8写法
+    @Test
+    public void test2() {
+        Long sum = LongStream.rangeClosed(0L, 100000000L)
+                .parallel()
+                .reduce(0L, Long::sum);
+        System.out.println(sum);
+    }
+}
+
+class ForkJoinSumCalculate extends RecursiveTask<Long> {
+    private long start;
+    private long end;
+    private long mid;
+    private static final long THRESHOLD = 3L;
+
+    ForkJoinSumCalculate(long start, long end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    protected Long compute() {
+        if (end - start <= THRESHOLD) {
+            long sum = 0L;
+            for (long i = start; i <= end; i++) {
+                sum += i;
+            }
+            return sum;
+        } else {
+            mid = (end + start) >> 1;
+            ForkJoinSumCalculate left = new ForkJoinSumCalculate(start, mid);
+            left.fork();// 拆分并压入线程队列
+            ForkJoinSumCalculate right = new ForkJoinSumCalculate(mid + 1, end);
+            right.fork();
+            return left.join() + right.join();
+        }
+    }
+}
+```
 
 # 补充：编码
 

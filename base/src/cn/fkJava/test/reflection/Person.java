@@ -40,6 +40,7 @@ class Person extends Test<GenericClass> implements Serializable {
         this.name = name;
     }
 
+    @PersonAnnotation
     private void print1(String name) throws Exception {
         System.out.println("这是一个私有方法");
     }
@@ -61,7 +62,7 @@ class GenericClass {
 
 }
 
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @interface PersonAnnotation {
     String value() default "non-value";

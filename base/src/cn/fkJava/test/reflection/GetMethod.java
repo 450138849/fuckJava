@@ -16,7 +16,9 @@ public class GetMethod {
 //        Arrays.stream(methods).forEach(x -> System.out.println(x.getName()));//不包含私有方法
 //        Arrays.stream(declaredMethods).forEach(x -> System.out.println(x.getName()));//包含私有方法
         //获取方法的注解
-        System.out.println(print1.getAnnotation(PersonAnnotation.class));//null
+        System.out.println(print1.getAnnotation(PersonAnnotation.class));//@cn.fkJava.test.reflection.PersonAnnotation("non-value")
+        //获取注解的值
+        System.out.println(print1.getAnnotation(PersonAnnotation.class).value());//non-value
         //获取方法的修饰符
         System.out.println(print1.getModifiers());//2
         //获取方法的返回值类型
