@@ -1253,11 +1253,17 @@ public enum TestEnum {
   - Deque--双端队列
   - LinkedList--实现了堆栈和队列的所有操作
 
+**队列和栈常用操作**
+
+![image-20201031163355187](E:\github\fuckJava\笔记\javaSE.assets\image-20201031163355187.png)
+
+![image-20201031163539044](E:\github\fuckJava\笔记\javaSE.assets\image-20201031163539044.png)
+
 **队列操作**
 
-- add
-- remove
-- get
+- add--抛出异常
+- remove--抛出异常
+- get--抛出异常
 - offer
 - poll
 - peek

@@ -52,3 +52,30 @@ file->project structure->libaries=>+
 
 填充变量的时候可以使用的函数参考https://www.jetbrains.com/help/idea/template-variables.html#pdtv
 
+## 允许程序并行执行
+
+![image-20201031102647178](E:\github\fuckJava\工具说明\idea\idea.assets\image-20201031102647178.png)
+
+![image-20201031102701169](E:\github\fuckJava\工具说明\idea\idea.assets\image-20201031102701169.png)
+
+# 3.使用maven
+
+## 3.1创建Maven项目
+
+## 3.2导包
+
+https://mvnrepository.com/
+
+这个网站可以搜索需要的gav
+
+## 异常处理
+
+如果运行的时候报累找不到，首先查看配置文件的module是否正确
+
+![image-20201030183746946](E:\github\fuckJava\工具说明\idea\idea.assets\image-20201030183746946.png)
+
+![image-20201030183810782](E:\github\fuckJava\工具说明\idea\idea.assets\image-20201030183810782.png)
+
+如果配置正确，则使用maven clean清除之后maven compile重新编译项目
+
+![image-20201030183937944](E:\github\fuckJava\工具说明\idea\idea.assets\image-20201030183937944.png)
